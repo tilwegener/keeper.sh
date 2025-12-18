@@ -4,6 +4,10 @@
   "types": "src/index.ts",
   "type": "module",
   "private": true,
+  "scripts": {
+    "generate": "drizzle-kit generate",
+    "migrate": "drizzle-kit migrate"
+  },
   "devDependencies": {
     "@keeper.sh/typescript-config": "workspace:*",
     "@types/bun": "latest",
@@ -11,6 +15,7 @@
     "drizzle-kit": "0.31.8"
   },
   "dependencies": {
+    "@keeper.sh/env": "workspace:*",
     "@keeper.sh/log": "workspace:*",
     "dotenv": "17.2.3",
     "drizzle-orm": "0.45.1",
