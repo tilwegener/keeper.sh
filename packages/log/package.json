@@ -1,0 +1,14 @@
+{
+  "name": "@keeper.sh/log",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@keeper.sh/typescript-config": "workspace:*",
+    "@types/bun": "latest",
+    "@types/pino": "^7.0.5"
+  },
+  "dependencies": {
+    "pino": "10.1.0"
+  }
+}
