@@ -2,7 +2,8 @@
   "name": "@keeper.sh/env",
   "types": "./src/index.ts",
   "exports": {
-    "./database": "./src/database.ts"
+    "./database": "./src/database.ts",
+    "./database/seed": "./src/database/seed.ts"
   },
   "type": "module",
   "private": true,

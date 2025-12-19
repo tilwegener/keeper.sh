@@ -1,12 +1,4 @@
-import { randomUUID, randomPastDate, randomString, randomElement } from "../utils/random";
-
-const DOMAINS = [
-  "calendar.google.com",
-  "outlook.office365.com",
-  "caldav.fastmail.com",
-  "calendar.yahoo.com",
-  "ical.example.org",
-];
+import { randomUUID, randomPastDate } from "../utils/random";
 
 export type GeneratedRemoteSource = {
   id: string;
@@ -15,12 +7,22 @@ export type GeneratedRemoteSource = {
   createdAt: Date;
 };
 
-export const generateRemoteSource = (userId: string): GeneratedRemoteSource => ({
+export const generateRemoteSource = (
+  baseUrl: string,
+  userId: string,
+  snapshotId: string,
+): GeneratedRemoteSource => ({
   id: randomUUID(),
   userId,
-  url: `https://${randomElement(DOMAINS)}/ical/${randomString(16)}.ics`,
+  url: new URL(`/snapshots/${snapshotId}.ics`, baseUrl).href,
   createdAt: randomPastDate(30),
 });
 
-export const generateRemoteSources = (userId: string, count: number): GeneratedRemoteSource[] =>
-  Array.from({ length: count }, () => generateRemoteSource(userId));
+export const generateRemoteSources = (
+  baseUrl: string,
+  userId: string,
+  snapshotIds: string[],
+): GeneratedRemoteSource[] =>
+  snapshotIds.map((snapshotId) =>
+    generateRemoteSource(baseUrl, userId, snapshotId),
+  );

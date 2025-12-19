@@ -86,6 +86,7 @@
     "packages/synthetic-data": {
       "name": "@keeper.sh/synthetic-data",
       "dependencies": {
+        "@keeper.sh/env": "workspace:*",
         "ts-ics": "2.4.0",
       },
       "devDependencies": {

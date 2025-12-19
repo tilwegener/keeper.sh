@@ -1,4 +1,4 @@
-import { randomUUID, randomPastDate, randomString, randomElement } from "../utils/random";
+import { randomUUID, randomPastDate, randomElement } from "../utils/random";
 
 const CALENDAR_NAMES = [
   "Work",
@@ -21,13 +21,23 @@ export type GeneratedCalendar = {
   createdAt: Date;
 };
 
-export const generateCalendar = (userId: string): GeneratedCalendar => ({
+export const generateCalendar = (
+  baseUrl: string,
+  userId: string,
+  snapshotId: string,
+): GeneratedCalendar => ({
   id: randomUUID(),
   userId,
-  remoteUrl: `https://calendar.example.com/${randomString(12)}.ics`,
+  remoteUrl: new URL(`/snapshots/${snapshotId}.ics`, baseUrl).href,
   name: randomElement(CALENDAR_NAMES),
   createdAt: randomPastDate(60),
 });
 
-export const generateCalendars = (userId: string, count: number): GeneratedCalendar[] =>
-  Array.from({ length: count }, () => generateCalendar(userId));
+export const generateCalendars = (
+  baseUrl: string,
+  userId: string,
+  snapshotIds: string[],
+): GeneratedCalendar[] =>
+  snapshotIds.map((snapshotId) =>
+    generateCalendar(baseUrl, userId, snapshotId),
+  );

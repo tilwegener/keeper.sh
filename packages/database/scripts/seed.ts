@@ -1,3 +1,4 @@
+import env from "@keeper.sh/env/database/seed";
 import { database } from "@keeper.sh/database";
 import {
   usersTable,
@@ -21,32 +22,40 @@ const seed = async () => {
 
   const users = generateUsers(5);
   await database.insert(usersTable).values(users);
-  log.debug({ count: users.length }, "users");
+  log.debug("seeded %s users", users.length);
 
   for (const user of users) {
-    const calendars = generateCalendars(user.id, randomInt(2, 3));
+    const snapshots = generateSnapshots(user.id, randomInt(3, 5));
+    await database.insert(calendarSnapshotsTable).values(snapshots);
+    log.debug("seeded %s snapshots for user '%s'", snapshots.length, user.id);
+
+    const snapshotIds = snapshots.map((s) => s.id);
+    const calendars = generateCalendars(env.API_BASE_URL, user.id, snapshotIds);
     await database.insert(calendarsTable).values(calendars);
-    log.debug({ userId: user.id, count: calendars.length }, "calendars");
+    log.debug("seeded %s calendars for user '%s'", calendars.length, user.id);
 
     for (const calendar of calendars) {
       const eventStates = generateEventStates(calendar.id, randomInt(5, 10));
       await database.insert(eventStatesTable).values(eventStates);
       log.debug(
-        { calendarId: calendar.id, count: eventStates.length },
-        "event states",
+        "seeded %s event states for calendar '%s'",
+        eventStates.length,
+        calendar.id,
       );
     }
 
-    const remoteSources = generateRemoteSources(user.id, randomInt(1, 2));
+    const remoteSourceIds = snapshotIds.slice(0, randomInt(1, 2));
+    const remoteSources = generateRemoteSources(
+      env.API_BASE_URL,
+      user.id,
+      remoteSourceIds,
+    );
     await database.insert(remoteICalSourcesTable).values(remoteSources);
     log.debug(
-      { userId: user.id, count: remoteSources.length },
-      "remote sources",
+      "seeded %s remote sources for user '%s'",
+      remoteSources.length,
+      user.id,
     );
-
-    const snapshots = generateSnapshots(user.id, randomInt(3, 5));
-    await database.insert(calendarSnapshotsTable).values(snapshots);
-    log.debug({ userId: user.id, count: snapshots.length }, "snapshots");
   }
 
   log.info("seeding complete");

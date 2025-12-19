@@ -23,7 +23,7 @@ const pullAndLogRemoteCalendar = async (
     log.debug({ id }, "fetched remote calendar");
     return { result, userId };
   } catch (error) {
-    log.error({ error }, `could not fetch remote calendar '${id}'`);
+    log.error({ error, id }, "could not fetch remote calendar");
     throw error;
   }
 };

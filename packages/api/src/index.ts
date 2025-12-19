@@ -6,6 +6,20 @@ import { eq, and } from "drizzle-orm";
 const server = Bun.serve({
   port: 3000,
   routes: {
+    "/users/:userId/snapshots": async (req) => {
+      const { userId } = req.params;
+
+      const snapshots = await database
+        .select({ id: calendarSnapshotsTable.id })
+        .from(calendarSnapshotsTable)
+        .where(and(
+          eq(calendarSnapshotsTable.userId, userId),
+          eq(calendarSnapshotsTable.public, true)
+        ));
+
+      return Response.json(snapshots.map((s) => s.id));
+    },
+
     "/snapshots/:id": async (req) => {
       const id = req.params.id.replace(/\.ics$/, "");
 

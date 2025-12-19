@@ -9,6 +9,7 @@
     "@types/bun": "latest"
   },
   "dependencies": {
+    "@keeper.sh/env": "workspace:*",
     "ts-ics": "2.4.0"
   }
 }
