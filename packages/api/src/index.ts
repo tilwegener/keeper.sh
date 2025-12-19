@@ -6,6 +6,7 @@ import {
   eventStatesTable,
 } from "@keeper.sh/database/schema";
 import { pullRemoteCalendar } from "@keeper.sh/pull-calendar";
+import { canAddSource } from "@keeper.sh/premium";
 import { log } from "@keeper.sh/log";
 import { BunRequest } from "bun";
 import { eq, and, inArray } from "drizzle-orm";
@@ -65,6 +66,19 @@ const server = Bun.serve({
             return Response.json(
               { error: "Name and URL are required" },
               { status: 400 },
+            );
+          }
+
+          const existingSources = await database
+            .select({ id: remoteICalSourcesTable.id })
+            .from(remoteICalSourcesTable)
+            .where(eq(remoteICalSourcesTable.userId, userId));
+
+          const allowed = await canAddSource(userId, existingSources.length);
+          if (!allowed) {
+            return Response.json(
+              { error: "Source limit reached. Upgrade to Pro for unlimited sources." },
+              { status: 402 },
             );
           }
 

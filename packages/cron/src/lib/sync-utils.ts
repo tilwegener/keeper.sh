@@ -1,4 +1,3 @@
-import type { CronOptions } from "cronbake";
 import { database } from "@keeper.sh/database";
 import {
   remoteICalSourcesTable,
@@ -6,11 +5,12 @@ import {
   calendarSnapshotsTable,
 } from "@keeper.sh/database/schema";
 import { parseIcsEvents, diffEvents } from "@keeper.sh/sync-events";
+import { getUserPlan, type Plan } from "@keeper.sh/premium";
 import { convertIcsCalendar } from "ts-ics";
 import { log } from "@keeper.sh/log";
 import { eq, inArray, desc } from "drizzle-orm";
 
-type Source = typeof remoteICalSourcesTable.$inferSelect;
+export type Source = typeof remoteICalSourcesTable.$inferSelect;
 
 const getLatestSnapshot = async (sourceId: string) => {
   const [snapshot] = await database
@@ -57,7 +57,7 @@ const addEvents = async (
   log.debug("added %s events to source '%s'", events.length, sourceId);
 };
 
-const syncSource = async (source: Source) => {
+export const syncSource = async (source: Source) => {
   log.debug("syncing source '%s'", source.id);
 
   try {
@@ -88,15 +88,16 @@ const syncSource = async (source: Source) => {
   }
 };
 
-export default {
-  name: import.meta.file,
-  cron: "@every_5_minutes",
-  immediate: true,
-  async callback() {
-    const sources = await database.select().from(remoteICalSourcesTable);
-    log.debug("syncing %s sources", sources.length);
+export async function getSourcesByPlan(targetPlan: Plan): Promise<Source[]> {
+  const sources = await database.select().from(remoteICalSourcesTable);
 
-    const syncs = sources.map((source) => syncSource(source));
-    await Promise.allSettled(syncs);
-  },
-} satisfies CronOptions;
+  const userPlans = new Map<string, Plan>();
+
+  for (const source of sources) {
+    if (!userPlans.has(source.userId)) {
+      userPlans.set(source.userId, await getUserPlan(source.userId));
+    }
+  }
+
+  return sources.filter((source) => userPlans.get(source.userId) === targetPlan);
+}

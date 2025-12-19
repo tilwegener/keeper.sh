@@ -2,12 +2,15 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Button } from "@base-ui/react/button";
+import { FREE_SOURCE_LIMIT } from "@keeper.sh/premium/constants";
 import { Toast } from "@/components/toast-provider";
 import { FormDialog } from "@/components/form-dialog";
 import { FormField } from "@/components/form-field";
 import { SectionHeader } from "@/components/section-header";
 import { useSources, type CalendarSource } from "@/hooks/use-sources";
+import { useSubscription } from "@/hooks/use-subscription";
 import {
   button,
   input,
@@ -69,6 +72,17 @@ const SourcesList = ({
     </>
   );
 };
+
+const UpgradeBanner = () => (
+  <div className="flex items-center justify-between p-3 bg-amber-50 border border-amber-200 rounded-lg">
+    <span className="text-sm text-amber-800">
+      You've reached the free plan limit of {FREE_SOURCE_LIMIT} sources.
+    </span>
+    <Link href="/dashboard/billing" className={button({ variant: "primary" })}>
+      Upgrade to Pro
+    </Link>
+  </div>
+);
 
 const AddSourceDialog = ({
   open,
@@ -149,7 +163,12 @@ const AddSourceDialog = ({
 export const CalendarSourcesSection = () => {
   const toastManager = Toast.useToastManager();
   const { data: sources, isLoading, mutate } = useSources();
+  const { data: subscription } = useSubscription();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const isAtLimit =
+    subscription?.plan === "free" &&
+    (sources?.length ?? 0) >= FREE_SOURCE_LIMIT;
 
   const handleAddSource = async (name: string, url: string) => {
     const response = await fetch("/api/ics", {
@@ -157,6 +176,10 @@ export const CalendarSourcesSection = () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, url }),
     });
+
+    if (response.status === 402) {
+      throw new Error("Source limit reached. Please upgrade to Pro.");
+    }
 
     if (!response.ok) {
       const data = await response.json();
@@ -194,11 +217,14 @@ export const CalendarSourcesSection = () => {
           isLoading={isLoading}
           onRemove={handleRemoveSource}
         />
-        <AddSourceDialog
-          open={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
-          onAdd={handleAddSource}
-        />
+        {isAtLimit && <UpgradeBanner />}
+        {!isAtLimit && (
+          <AddSourceDialog
+            open={isDialogOpen}
+            onOpenChange={setIsDialogOpen}
+            onAdd={handleAddSource}
+          />
+        )}
       </div>
     </section>
   );

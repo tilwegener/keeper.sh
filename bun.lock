@@ -11,6 +11,7 @@
         "@keeper.sh/auth": "workspace:*",
         "@keeper.sh/database": "workspace:*",
         "@keeper.sh/log": "workspace:*",
+        "@keeper.sh/premium": "workspace:*",
         "@keeper.sh/pull-calendar": "workspace:*",
         "drizzle-orm": "0.45.1",
       },
@@ -50,8 +51,10 @@
     "packages/cron": {
       "name": "@keeper.sh/cron",
       "dependencies": {
+        "@keeper.sh/auth": "workspace:*",
         "@keeper.sh/database": "workspace:*",
         "@keeper.sh/log": "workspace:*",
+        "@keeper.sh/premium": "workspace:*",
         "@keeper.sh/pull-calendar": "workspace:*",
         "@keeper.sh/sync-events": "workspace:*",
         "cronbake": "0.4.0",
@@ -103,6 +106,17 @@
         "@types/pino": "^7.0.5",
       },
     },
+    "packages/premium": {
+      "name": "@keeper.sh/premium",
+      "dependencies": {
+        "@keeper.sh/database": "workspace:*",
+        "drizzle-orm": "^0.45.1",
+      },
+      "devDependencies": {
+        "@keeper.sh/typescript-config": "workspace:*",
+        "@types/bun": "latest",
+      },
+    },
     "packages/pull-calendar": {
       "name": "@keeper.sh/pull-calendar",
       "dependencies": {
@@ -146,7 +160,9 @@
       "dependencies": {
         "@base-ui/react": "1.0.0",
         "@keeper.sh/auth": "workspace:*",
+        "@keeper.sh/database": "workspace:*",
         "@keeper.sh/log": "workspace:*",
+        "@keeper.sh/premium": "workspace:*",
         "@polar-sh/better-auth": "^1.6.1",
         "@polar-sh/checkout": "^0.1.14",
         "@tailwindcss/postcss": "^4.1.18",
@@ -334,6 +350,8 @@
     "@keeper.sh/env": ["@keeper.sh/env@workspace:packages/env"],
 
     "@keeper.sh/log": ["@keeper.sh/log@workspace:packages/log"],
+
+    "@keeper.sh/premium": ["@keeper.sh/premium@workspace:packages/premium"],
 
     "@keeper.sh/pull-calendar": ["@keeper.sh/pull-calendar@workspace:packages/pull-calendar"],
 

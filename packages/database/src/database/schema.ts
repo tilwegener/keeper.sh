@@ -36,3 +36,13 @@ export const eventStatesTable = pgTable("event_states", {
   endTime: timestamp().notNull(),
   createdAt: timestamp().notNull().defaultNow(),
 });
+
+export const userSubscriptionsTable = pgTable("user_subscriptions", {
+  userId: text()
+    .notNull()
+    .primaryKey()
+    .references(() => user.id, { onDelete: "cascade" }),
+  plan: text().notNull().default("free"),
+  polarSubscriptionId: text(),
+  updatedAt: timestamp().notNull().defaultNow(),
+});

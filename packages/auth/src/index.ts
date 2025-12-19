@@ -14,7 +14,7 @@ if (env.NO_EMAIL_REQUIRED) {
   plugins.push(usernameOnly());
 }
 
-const polarClient =
+export const polarClient =
   env.POLAR_ACCESS_TOKEN && env.POLAR_MODE
     ? new Polar({
         accessToken: env.POLAR_ACCESS_TOKEN,
