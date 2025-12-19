@@ -41,8 +41,14 @@ export const insertSnapshot = async (
 export default {
   name: import.meta.file,
   cron: "@every_5_minutes",
-  callback: async () => {
+  immediate: true,
+  async callback() {
     const remoteSources = await database.select().from(remoteICalSourcesTable);
+
+    log.info(
+      { "remoteSources.length": remoteSources.length },
+      "got remote sources",
+    );
 
     const fetches = remoteSources.map(({ id, url, userId }) => {
       return pullAndLogRemoteCalendar(id, { url, userId });
