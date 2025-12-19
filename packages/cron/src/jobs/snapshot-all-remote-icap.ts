@@ -23,7 +23,7 @@ const pullAndLogRemoteCalendar = async (
     log.debug("fetched remote calendar '%s'", id);
     return { result, userId };
   } catch (error) {
-    log.error({ error }, "could not fetch remote calendar '%s'", id);
+    log.error(error, "could not fetch remote calendar '%s'", id);
     throw error;
   }
 };
@@ -34,7 +34,7 @@ export const insertSnapshot = async (
   try {
     database.insert(calendarSnapshotsTable).values(payload);
   } catch (error) {
-    log.error({ error }, "failed to submit entry into the database");
+    log.error(error, "failed to submit entry into the database");
   }
 };
 
