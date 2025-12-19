@@ -1,11 +1,11 @@
 import { tv } from "tailwind-variants";
 
 export const button = tv({
-  base: "inline-flex items-center justify-center py-2 px-4 rounded-md text-sm font-medium no-underline cursor-pointer transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900",
+  base: "inline-flex items-center justify-center py-2 px-4 rounded-md text-sm font-medium no-underline cursor-pointer transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-gray-300",
   variants: {
     variant: {
       primary:
-        "bg-gray-900 border border-gray-900 text-white hover:bg-gray-700 hover:border-gray-700",
+        "bg-gray-900 border border-gray-900 text-white hover:bg-gray-700 hover:border-gray-700 disabled:hover:bg-gray-900 disabled:hover:border-gray-900",
       secondary:
         "bg-transparent border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400",
     },
@@ -172,4 +172,71 @@ export const agendaEventSource = tv({
 
 export const agendaEmptyDay = tv({
   base: "text-sm text-gray-400 italic py-2",
+});
+
+export const pricingCard = tv({
+  base: "flex flex-col p-6 border rounded-xl transition-colors",
+  variants: {
+    current: {
+      true: "border-gray-900",
+      false: "",
+    },
+    featured: {
+      true: "border-gray-900 bg-gray-50 shadow-sm",
+      false: "border-gray-200 bg-white",
+    },
+    muted: {
+      true: "opacity-75",
+      false: "",
+    },
+  },
+  defaultVariants: {
+    current: false,
+    featured: false,
+    muted: false,
+  },
+});
+
+export const pricingBadge = tv({
+  base: "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium",
+  variants: {
+    variant: {
+      current: "bg-gray-900 text-white",
+      popular: "bg-blue-100 text-blue-800",
+    },
+  },
+});
+
+export const pricingPrice = tv({
+  base: "text-4xl font-bold text-gray-900",
+});
+
+export const pricingPeriod = tv({
+  base: "text-sm text-gray-500 font-normal",
+});
+
+export const pricingFeature = tv({
+  base: "flex items-center gap-2 text-sm text-gray-600",
+});
+
+export const pricingFeatureIcon = tv({
+  base: "w-4 h-4 shrink-0",
+  variants: {
+    included: {
+      true: "text-green-600",
+      false: "text-gray-300",
+    },
+  },
+});
+
+export const billingToggleGroup = tv({
+  base: "inline-grid grid-cols-2 rounded-lg border border-gray-200 p-1 bg-gray-50",
+});
+
+export const billingToggle = tv({
+  base: "px-4 py-2 text-sm font-medium rounded-md transition-colors text-gray-600 hover:text-gray-900 data-[pressed]:bg-white data-[pressed]:text-gray-900 data-[pressed]:shadow-sm cursor-pointer",
+});
+
+export const billingSavingsBadge = tv({
+  base: "ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700",
 });
