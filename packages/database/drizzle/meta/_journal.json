@@ -15,6 +15,13 @@
       "when": 1766100764121,
       "tag": "0001_complete_golden_guardian",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1766105754550,
+      "tag": "0002_striped_queen_noir",
+      "breakpoints": true
     }
   ]
 }
