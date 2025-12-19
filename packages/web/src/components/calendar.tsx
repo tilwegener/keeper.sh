@@ -5,6 +5,7 @@ import {
   isSameDay,
   formatTime,
   formatDayHeading,
+  getColorFromUrl,
 } from "@/utils/calendar";
 import {
   agendaContainer,
@@ -24,6 +25,7 @@ export interface CalendarEvent {
   endTime: Date;
   calendarId?: string;
   sourceName?: string;
+  sourceUrl?: string;
 }
 
 export interface CalendarProps {
@@ -31,16 +33,6 @@ export interface CalendarProps {
   startDate?: Date;
   daysToShow?: number;
 }
-
-type EventColor = "blue" | "green" | "purple" | "orange";
-
-const CALENDAR_COLORS: EventColor[] = ["blue", "green", "purple", "orange"];
-
-const getEventColor = (calendarId?: string): EventColor => {
-  if (!calendarId) return "blue";
-  const hash = calendarId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return CALENDAR_COLORS[hash % CALENDAR_COLORS.length] ?? "blue";
-};
 
 const DayEventList = ({ events }: { events: CalendarEvent[] }) => {
   if (events.length === 0) {
@@ -51,7 +43,7 @@ const DayEventList = ({ events }: { events: CalendarEvent[] }) => {
     <ul className={agendaEventList()}>
       {events.map((event) => (
         <li key={event.id} className={agendaEventItem()}>
-          <span className={agendaEventDot({ color: getEventColor(event.calendarId) })} />
+          <span className={agendaEventDot({ color: getColorFromUrl(event.sourceUrl) })} />
           <span>
             Busy from{" "}
             <span className={agendaEventTime()}>

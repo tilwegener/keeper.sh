@@ -120,6 +120,7 @@ const server = Bun.serve({
             .select({
               id: remoteICalSourcesTable.id,
               name: remoteICalSourcesTable.name,
+              url: remoteICalSourcesTable.url,
             })
             .from(remoteICalSourcesTable)
             .where(eq(remoteICalSourcesTable.userId, userId));
@@ -130,7 +131,7 @@ const server = Bun.serve({
 
           const sourceIds = sources.map((source) => source.id);
           const sourceMap = new Map(
-            sources.map((source) => [source.id, source.name]),
+            sources.map((source) => [source.id, { name: source.name, url: source.url }]),
           );
 
           const events = await database
@@ -143,13 +144,17 @@ const server = Bun.serve({
             .from(eventStatesTable)
             .where(inArray(eventStatesTable.sourceId, sourceIds));
 
-          const result = events.map((event) => ({
-            id: event.id,
-            startTime: event.startTime,
-            endTime: event.endTime,
-            calendarId: event.sourceId,
-            sourceName: sourceMap.get(event.sourceId),
-          }));
+          const result = events.map((event) => {
+            const source = sourceMap.get(event.sourceId);
+            return {
+              id: event.id,
+              startTime: event.startTime,
+              endTime: event.endTime,
+              calendarId: event.sourceId,
+              sourceName: source?.name,
+              sourceUrl: source?.url,
+            };
+          });
 
           return Response.json(result);
         }),

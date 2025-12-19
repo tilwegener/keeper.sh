@@ -6,6 +6,7 @@ interface ApiEvent {
   endTime: string;
   calendarId: string;
   sourceName: string;
+  sourceUrl: string;
 }
 
 export interface CalendarEvent {
@@ -14,9 +15,10 @@ export interface CalendarEvent {
   endTime: Date;
   calendarId: string;
   sourceName: string;
+  sourceUrl: string;
 }
 
-async function fetchEvents(): Promise<CalendarEvent[]> {
+const fetchEvents = async (): Promise<CalendarEvent[]> => {
   const response = await fetch("/api/events");
   if (!response.ok) {
     throw new Error("Failed to fetch events");
@@ -29,8 +31,9 @@ async function fetchEvents(): Promise<CalendarEvent[]> {
     endTime: new Date(event.endTime),
     calendarId: event.calendarId,
     sourceName: event.sourceName,
+    sourceUrl: event.sourceUrl,
   }));
-}
+};
 
 export function useEvents() {
   return useSWR("calendar-events", fetchEvents);

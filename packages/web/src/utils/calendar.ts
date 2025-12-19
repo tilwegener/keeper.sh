@@ -1,5 +1,29 @@
 export const HOURS = Array.from({ length: 24 }, (_, index) => index);
 
+export type EventColor = "blue" | "green" | "purple" | "orange";
+
+const EVENT_COLORS: EventColor[] = ["blue", "green", "purple", "orange"];
+
+/**
+ * Hash a string using djb2 algorithm for consistent color generation
+ */
+const hashString = (str: string): number => {
+  let hash = 5381;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash * 33) ^ str.charCodeAt(i);
+  }
+  return hash >>> 0;
+};
+
+/**
+ * Generate a consistent color from a source URL
+ */
+export const getColorFromUrl = (url: string | undefined): EventColor => {
+  if (!url) return "blue";
+  const hash = hashString(url);
+  return EVENT_COLORS[hash % EVENT_COLORS.length] ?? "blue";
+};
+
 export function getDaysFromDate(startDate: Date, count: number) {
   return Array.from({ length: count }, (_, offset) => {
     const date = new Date(startDate);
