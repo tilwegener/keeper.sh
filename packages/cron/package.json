@@ -1,0 +1,17 @@
+{
+  "name": "@keeper.sh/cron",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@keeper.sh/typescript-config": "workspace:*",
+    "@types/bun": "latest"
+  },
+  "dependencies": {
+    "@keeper.sh/database": "workspace:*",
+    "@keeper.sh/pull-calendar": "workspace:*",
+    "@keeper.sh/log": "workspace:*",
+    "cronbake": "0.4.0"
+  }
+}

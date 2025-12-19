@@ -7,12 +7,26 @@ const fetchRemoteText = async (url: string) => {
   return response.text();
 };
 
-export const getRemoteCalendar = async (url: string) => {
-  try {
-    const text = await fetchRemoteText(url);
-    return convertIcsCalendar(undefined, text);
-  } catch (error) {
-    log.error(error);
-    throw error;
-  }
-};
+type ParsedCalendarResult = ReturnType<typeof convertIcsCalendar>;
+
+export async function pullRemoteCalendar(
+  output: "icap",
+  url: string,
+): Promise<string>;
+
+export async function pullRemoteCalendar(
+  output: "json",
+  url: string,
+): Promise<ParsedCalendarResult>;
+
+/**
+ * @throws
+ */
+export async function pullRemoteCalendar(
+  output: "json" | "icap",
+  url: string,
+): Promise<string | ParsedCalendarResult> {
+  const text = await fetchRemoteText(url);
+  if (output === "icap") return text;
+  return convertIcsCalendar(undefined, text);
+}
