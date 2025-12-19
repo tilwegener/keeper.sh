@@ -1,12 +1,7 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-} from "react";
+import { createContext, useContext } from "react";
+import useSWR from "swr";
 import { getSession } from "@/lib/auth";
 
 interface User {
@@ -22,29 +17,22 @@ interface AuthContextValue {
   refresh: () => Promise<void>;
 }
 
+async function fetchSession(): Promise<User | null> {
+  const session = await getSession();
+  return session?.user ?? null;
+}
+
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: user, isLoading, mutate } = useSWR("session", fetchSession);
 
-  const refresh = useCallback(async () => {
-    try {
-      const session = await getSession();
-      setUser(session?.user ?? null);
-    } catch {
-      setUser(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
+  const refresh = async () => {
+    await mutate();
+  };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, refresh }}>
+    <AuthContext.Provider value={{ user: user ?? null, isLoading, refresh }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { Button } from "@base-ui/react/button";
 import { Dialog } from "@base-ui/react/dialog";
 import { Toast } from "@/components/toast-provider";
+import { useSources } from "@/hooks/use-sources";
 import {
   button,
   input,
@@ -15,13 +16,6 @@ import {
   integrationName,
   integrationDescription,
 } from "@/styles";
-
-interface CalendarSource {
-  id: string;
-  name: string;
-  url: string;
-  createdAt: string;
-}
 
 const destinations = [
   {
@@ -46,30 +40,11 @@ const destinations = [
 export default function IntegrationsPage() {
   const icalUrl = "https://keeper.sh/cal/abc123.ics";
   const toastManager = Toast.useToastManager();
+  const { data: sources, isLoading, mutate } = useSources();
 
-  const [sources, setSources] = useState<CalendarSource[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
-
-  async function fetchSources() {
-    try {
-      const response = await fetch("/api/ics");
-      if (response.ok) {
-        const data = await response.json();
-        setSources(data);
-      }
-    } catch {
-      console.error("Failed to fetch sources");
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchSources();
-  }, []);
 
   async function handleAddSource(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -92,7 +67,7 @@ export default function IntegrationsPage() {
         throw new Error(data.error || "Failed to add source");
       }
 
-      await fetchSources();
+      await mutate();
       setIsDialogOpen(false);
       toastManager.add({ title: "Calendar source added" });
     } catch (err) {
@@ -109,7 +84,7 @@ export default function IntegrationsPage() {
       });
 
       if (response.ok) {
-        setSources(sources.filter((s) => s.id !== id));
+        await mutate();
         toastManager.add({ title: "Calendar source removed" });
       }
     } catch {
@@ -137,13 +112,13 @@ export default function IntegrationsPage() {
           {isLoading && (
             <div className="text-sm text-gray-500 py-4">Loading...</div>
           )}
-          {!isLoading && sources.length === 0 && (
+          {!isLoading && sources?.length === 0 && (
             <div className="text-sm text-gray-500 py-4">
               No calendar sources added yet
             </div>
           )}
           {!isLoading &&
-            sources.map((source) => (
+            sources?.map((source) => (
               <div key={source.id} className={integrationCard()}>
                 <div className={integrationInfo()}>
                   <div className={integrationName()}>{source.name}</div>
