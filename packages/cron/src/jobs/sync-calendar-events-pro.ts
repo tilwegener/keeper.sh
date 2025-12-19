@@ -6,6 +6,7 @@ export default {
   name: import.meta.file,
   cron: "@every_5_minutes",
   immediate: true,
+  delay: "1m",
   async callback() {
     const sources = await getSourcesByPlan("pro");
     log.debug("syncing %s pro sources", sources.length);

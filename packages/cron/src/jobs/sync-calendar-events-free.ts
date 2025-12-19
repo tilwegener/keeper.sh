@@ -6,6 +6,7 @@ export default {
   name: import.meta.file,
   cron: "@every_30_minutes",
   immediate: true,
+  delay: "1m",
   async callback() {
     const sources = await getSourcesByPlan("free");
     log.debug("syncing %s free sources", sources.length);
