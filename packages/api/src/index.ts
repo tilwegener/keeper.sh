@@ -10,7 +10,7 @@ import { canAddSource } from "@keeper.sh/premium";
 import { fetchAndSyncSource } from "@keeper.sh/sync-calendar";
 import { log } from "@keeper.sh/log";
 import { BunRequest } from "bun";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, gte, lte, asc } from "drizzle-orm";
 
 type BunRouteCallback = (request: BunRequest<string>) => Promise<Response>;
 
@@ -139,7 +139,27 @@ const server = Bun.serve({
     },
     "/api/events": {
       GET: withTracing(
-        withAuth(async (_request, userId) => {
+        withAuth(async (request, userId) => {
+          const url = new URL(request.url);
+          const fromParam = url.searchParams.get("from");
+          const toParam = url.searchParams.get("to");
+
+          log.debug({ fromParam, toParam, url: request.url }, "events query params");
+
+          const now = new Date();
+          const fromDate = fromParam ? new Date(fromParam) : now;
+          const toDate = toParam
+            ? new Date(toParam)
+            : new Date(fromDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+          const fromNormalized = new Date(fromDate);
+          fromNormalized.setHours(0, 0, 0, 0);
+
+          const toNormalized = new Date(toDate);
+          toNormalized.setHours(23, 59, 59, 999);
+
+          log.debug({ from: fromNormalized, to: toNormalized }, "date range");
+
           const sources = await database
             .select({
               id: remoteICalSourcesTable.id,
@@ -166,7 +186,14 @@ const server = Bun.serve({
               endTime: eventStatesTable.endTime,
             })
             .from(eventStatesTable)
-            .where(inArray(eventStatesTable.sourceId, sourceIds));
+            .where(
+              and(
+                inArray(eventStatesTable.sourceId, sourceIds),
+                gte(eventStatesTable.startTime, fromNormalized),
+                lte(eventStatesTable.startTime, toNormalized),
+              ),
+            )
+            .orderBy(asc(eventStatesTable.startTime));
 
           const result = events.map((event) => {
             const source = sourceMap.get(event.sourceId);

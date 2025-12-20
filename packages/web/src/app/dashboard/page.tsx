@@ -1,22 +1,13 @@
-"use client";
-
-import { Calendar } from "@/components/calendar";
-import { useEvents } from "@/hooks/use-events";
+import { Suspense } from "react";
+import { CalendarSkeleton } from "@/components/calendar";
+import { CalendarFeed } from "@/components/calendar-feed";
 
 export default function DashboardPage() {
-  const { data: events, isLoading } = useEvents();
-
-  if (isLoading) {
-    return (
-      <div className="flex-1 flex items-center justify-center text-gray-500">
-        Loading...
-      </div>
-    );
-  }
-
   return (
-    <div className="flex-1 min-w-0 min-h-0">
-      <Calendar events={events ?? []} />
+    <div className="flex-1 min-w-0 min-h-0 overflow-y-auto">
+      <Suspense fallback={<CalendarSkeleton days={7} />}>
+        <CalendarFeed />
+      </Suspense>
     </div>
   );
 }

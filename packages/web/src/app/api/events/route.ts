@@ -7,8 +7,13 @@ if (!API_URL) {
 
 export async function GET(request: NextRequest) {
   const cookie = request.headers.get("Cookie");
+  const searchParams = request.nextUrl.searchParams;
 
   const url = new URL("/api/events", API_URL);
+  searchParams.forEach((value, key) => {
+    url.searchParams.set(key, value);
+  });
+
   const response = await fetch(url.toString(), {
     headers: {
       ...(cookie && { Cookie: cookie }),

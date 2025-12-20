@@ -4,6 +4,7 @@ import {
   pgTable,
   timestamp,
   uuid,
+  index,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth-schema";
 
@@ -27,15 +28,19 @@ export const calendarSnapshotsTable = pgTable("calendar_snapshots", {
   public: boolean().notNull().default(false),
 });
 
-export const eventStatesTable = pgTable("event_states", {
-  id: uuid().notNull().primaryKey().defaultRandom(),
-  sourceId: uuid()
-    .notNull()
-    .references(() => remoteICalSourcesTable.id, { onDelete: "cascade" }),
-  startTime: timestamp().notNull(),
-  endTime: timestamp().notNull(),
-  createdAt: timestamp().notNull().defaultNow(),
-});
+export const eventStatesTable = pgTable(
+  "event_states",
+  {
+    id: uuid().notNull().primaryKey().defaultRandom(),
+    sourceId: uuid()
+      .notNull()
+      .references(() => remoteICalSourcesTable.id, { onDelete: "cascade" }),
+    startTime: timestamp().notNull(),
+    endTime: timestamp().notNull(),
+    createdAt: timestamp().notNull().defaultNow(),
+  },
+  (table) => [index("event_states_start_time_idx").on(table.startTime)],
+);
 
 export const userSubscriptionsTable = pgTable("user_subscriptions", {
   userId: text()
