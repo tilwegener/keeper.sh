@@ -4,7 +4,8 @@
   "exports": {
     "./auth": "./src/auth.ts",
     "./database": "./src/database.ts",
-    "./database/seed": "./src/database/seed.ts"
+    "./database/seed": "./src/database/seed.ts",
+    "./redis": "./src/redis.ts"
   },
   "type": "module",
   "private": true,

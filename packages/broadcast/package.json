@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@keeper.sh/data-schemas": "workspace:*",
-    "@keeper.sh/log": "workspace:*"
+    "@keeper.sh/log": "workspace:*",
+    "@keeper.sh/redis": "workspace:*"
   }
 }

@@ -20,58 +20,61 @@ const createSocketUrl = (baseUrl: string, token: string): string => {
   return url.toString();
 };
 
-type StatusMap = Map<string, SyncStatus>;
-type Next = (error?: Error | null, data?: StatusMap | ((prev?: StatusMap) => StatusMap)) => void;
+type SyncStatusRecord = Record<string, SyncStatus>;
+type Next = (error?: Error | null, data?: SyncStatusRecord) => void;
 
 export function useSyncStatus() {
-  const subscribe = (baseUrl: string, { next }: { next: Next }) => {
-      let socket: WebSocket | null = null;
-      let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  return useSWRSubscription(getSocketUrl(), (baseUrl: string, { next }: { next: Next }) => {
+    let socket: WebSocket | null = null;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    let statuses: SyncStatusRecord = {};
 
-      const connect = async () => {
-        try {
-          const token = await fetchSocketToken();
-          socket = new WebSocket(createSocketUrl(baseUrl, token));
+    const connect = async () => {
+      try {
+        const token = await fetchSocketToken();
+        socket = new WebSocket(createSocketUrl(baseUrl, token));
 
-          socket.onmessage = (messageEvent) => {
-            const message = JSON.parse(String(messageEvent.data));
-            if (!socketMessageSchema.allows(message)) return;
+        socket.onmessage = (messageEvent) => {
+          const message = JSON.parse(String(messageEvent.data));
 
-            if (message.event === "ping") {
-              socket?.send(JSON.stringify({ event: "pong" }));
-              return;
-            }
+          if (!socketMessageSchema.allows(message)) {
+            next(new Error("Invalid socket message format"));
+            return;
+          }
 
-            if (message.event !== "sync:status") return;
-            if (!syncStatusSchema.allows(message.data)) return;
+          if (message.event === "ping") {
+            socket?.send(JSON.stringify({ event: "pong" }));
+            return;
+          }
 
-            const status = message.data;
-            next(null, (prev: Map<string, SyncStatus> | undefined) => {
-              const map = new Map(prev ?? []);
-              map.set(status.provider, status);
-              return map;
-            });
-          };
+          if (message.event !== "sync:status") return;
 
-          socket.onclose = () => {
-            reconnectTimer = setTimeout(connect, 3000);
-          };
+          if (!syncStatusSchema.allows(message.data)) {
+            next(new Error("Invalid sync status data"));
+            return;
+          }
 
-          socket.onerror = () => {
-            next(new Error("WebSocket error"));
-          };
-        } catch {
+          statuses = { ...statuses, [message.data.provider]: message.data };
+          next(null, statuses);
+        };
+
+        socket.onclose = () => {
           reconnectTimer = setTimeout(connect, 3000);
-        }
-      };
+        };
 
-      connect();
-
-      return () => {
-        if (reconnectTimer) clearTimeout(reconnectTimer);
-        socket?.close();
-      };
+        socket.onerror = () => {
+          next(new Error("WebSocket error"));
+        };
+      } catch {
+        reconnectTimer = setTimeout(connect, 3000);
+      }
     };
 
-  return useSWRSubscription(getSocketUrl(), subscribe);
+    connect();
+
+    return () => {
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      socket?.close();
+    };
+  });
 }

@@ -12,6 +12,7 @@ import { fetchAndSyncSource } from "@keeper.sh/sync-calendar";
 import { log } from "@keeper.sh/log";
 import {
   createWebsocketHandler,
+  startSubscriber,
   type BroadcastData,
   type Socket,
 } from "@keeper.sh/broadcast";
@@ -328,5 +329,7 @@ const server = Bun.serve<BroadcastData>({
     },
   },
 });
+
+startSubscriber();
 
 log.info({ port: server.port }, "server started");

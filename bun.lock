@@ -56,6 +56,7 @@
       "dependencies": {
         "@keeper.sh/data-schemas": "workspace:*",
         "@keeper.sh/log": "workspace:*",
+        "@keeper.sh/redis": "workspace:*",
       },
       "devDependencies": {
         "@keeper.sh/typescript-config": "workspace:*",
@@ -186,6 +187,16 @@
       "dependencies": {
         "@keeper.sh/log": "workspace:*",
         "ts-ics": "2.4.0",
+      },
+      "devDependencies": {
+        "@keeper.sh/typescript-config": "workspace:*",
+        "@types/bun": "latest",
+      },
+    },
+    "packages/redis": {
+      "name": "@keeper.sh/redis",
+      "dependencies": {
+        "@keeper.sh/env": "workspace:*",
       },
       "devDependencies": {
         "@keeper.sh/typescript-config": "workspace:*",
@@ -445,6 +456,8 @@
     "@keeper.sh/premium": ["@keeper.sh/premium@workspace:packages/premium"],
 
     "@keeper.sh/pull-calendar": ["@keeper.sh/pull-calendar@workspace:packages/pull-calendar"],
+
+    "@keeper.sh/redis": ["@keeper.sh/redis@workspace:packages/redis"],
 
     "@keeper.sh/sync-calendar": ["@keeper.sh/sync-calendar@workspace:packages/sync-calendar"],
 

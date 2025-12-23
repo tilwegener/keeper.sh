@@ -381,7 +381,7 @@ export const DestinationsSection = () => {
     accounts?.some((account) => account.providerId === providerId) ?? false;
 
   const getSyncStatus = (providerId: SupportedProvider) => {
-    const status = syncStatus?.get(providerId);
+    const status = syncStatus?.[providerId];
     if (!status) return undefined;
     return {
       localCount: status.localEventCount,

@@ -18,7 +18,7 @@ const syncUserSources = async (userId: string, sources: Source[]) => {
 
 export default {
   name: import.meta.file,
-  cron: "@every_5_minutes",
+  cron: "@every_20_seconds",
   immediate: true,
   async callback() {
     const sources = await getSourcesByPlan("pro");

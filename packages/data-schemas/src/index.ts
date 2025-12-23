@@ -53,9 +53,19 @@ export type SocketMessage = typeof socketMessageSchema.infer;
 
 export const syncStatusSchema = type({
   provider: "string",
+  status: "'idle' | 'syncing'",
+  "stage?": "'fetching' | 'comparing' | 'pushing' | 'deleting'",
   localEventCount: "number",
   remoteEventCount: "number",
-  lastSyncedAt: "string",
+  "progress?": { current: "number", total: "number" },
+  "lastSyncedAt?": "string",
   inSync: "boolean",
 });
 export type SyncStatus = typeof syncStatusSchema.infer;
+
+export const broadcastMessageSchema = type({
+  userId: "string",
+  event: "string",
+  data: "unknown",
+});
+export type BroadcastMessage = typeof broadcastMessageSchema.infer;

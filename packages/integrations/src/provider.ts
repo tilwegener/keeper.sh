@@ -101,7 +101,7 @@ export abstract class CalendarProvider<TConfig extends ProviderConfig = Provider
       provider: this.id,
       localEventCount,
       remoteEventCount,
-      lastSyncedAt: now,
+      lastSyncedAt: now.toISOString(),
       inSync,
     });
   }
