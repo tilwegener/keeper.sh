@@ -4,6 +4,9 @@ import {
   type PushResult,
   type DeleteResult,
 } from "@keeper.sh/integrations";
+import { log as baseLog } from "@keeper.sh/log";
+
+const log = baseLog.child({ provider: "google-calendar" });
 
 const GOOGLE_CALENDAR_API = "https://www.googleapis.com/calendar/v3/";
 
@@ -17,7 +20,7 @@ interface GoogleEventResource {
 }
 
 interface GoogleApiError {
-  error?: { message?: string };
+  error?: { message?: string; code?: number };
 }
 
 export class GoogleCalendarProvider extends CalendarProvider {
@@ -36,11 +39,19 @@ export class GoogleCalendarProvider extends CalendarProvider {
   }
 
   async pushEvents(events: SyncableEvent[]): Promise<PushResult[]> {
-    return Promise.all(events.map((event) => this.pushEvent(event)));
+    log.info({ count: events.length, calendarId: this.calendarId }, "pushing events");
+    const results = await Promise.all(events.map((event) => this.pushEvent(event)));
+    const succeeded = results.filter(({ success }) => success).length;
+    log.info({ succeeded, failed: results.length - succeeded }, "push complete");
+    return results;
   }
 
   async deleteEvents(eventIds: string[]): Promise<DeleteResult[]> {
-    return Promise.all(eventIds.map((id) => this.deleteEvent(id)));
+    log.info({ count: eventIds.length, calendarId: this.calendarId }, "deleting events");
+    const results = await Promise.all(eventIds.map((eventId) => this.deleteEvent(eventId)));
+    const succeeded = results.filter(({ success }) => success).length;
+    log.info({ succeeded, failed: results.length - succeeded }, "delete complete");
+    return results;
   }
 
   private async pushEvent(event: SyncableEvent): Promise<PushResult> {
@@ -51,11 +62,14 @@ export class GoogleCalendarProvider extends CalendarProvider {
       const existing = await this.findEventByUid(uid);
 
       if (existing?.id) {
+        log.debug({ uid, eventId: existing.id }, "updating existing event");
         return this.updateEvent(existing.id, resource);
       }
 
+      log.debug({ uid }, "creating new event");
       return this.createEvent(resource);
     } catch (error) {
+      log.error({ uid, error }, "failed to push event");
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
@@ -78,15 +92,17 @@ export class GoogleCalendarProvider extends CalendarProvider {
     });
 
     if (!response.ok) {
-      const data = (await response.json()) as GoogleApiError;
+      const { error } = (await response.json()) as GoogleApiError;
+      log.error({ status: response.status, error }, "create event failed");
       return {
         success: false,
-        error: data.error?.message ?? response.statusText,
+        error: error?.message ?? response.statusText,
       };
     }
 
-    const data = (await response.json()) as GoogleEventResource;
-    return { success: true, remoteId: data.id };
+    const { id: remoteId } = (await response.json()) as GoogleEventResource;
+    log.debug({ remoteId }, "event created");
+    return { success: true, remoteId };
   }
 
   private async updateEvent(
@@ -105,15 +121,17 @@ export class GoogleCalendarProvider extends CalendarProvider {
     });
 
     if (!response.ok) {
-      const data = (await response.json()) as GoogleApiError;
+      const { error } = (await response.json()) as GoogleApiError;
+      log.error({ status: response.status, eventId, error }, "update event failed");
       return {
         success: false,
-        error: data.error?.message ?? response.statusText,
+        error: error?.message ?? response.statusText,
       };
     }
 
-    const data = (await response.json()) as GoogleEventResource;
-    return { success: true, remoteId: data.id };
+    const { id: remoteId } = (await response.json()) as GoogleEventResource;
+    log.debug({ remoteId }, "event updated");
+    return { success: true, remoteId };
   }
 
   private async deleteEvent(uid: string): Promise<DeleteResult> {
@@ -121,6 +139,7 @@ export class GoogleCalendarProvider extends CalendarProvider {
       const existing = await this.findEventByUid(uid);
 
       if (!existing?.id) {
+        log.debug({ uid }, "event not found, skipping delete");
         return { success: true };
       }
 
@@ -135,15 +154,18 @@ export class GoogleCalendarProvider extends CalendarProvider {
       });
 
       if (!response.ok && response.status !== 404) {
-        const data = (await response.json()) as GoogleApiError;
+        const { error } = (await response.json()) as GoogleApiError;
+        log.error({ status: response.status, uid, error }, "delete event failed");
         return {
           success: false,
-          error: data.error?.message ?? response.statusText,
+          error: error?.message ?? response.statusText,
         };
       }
 
+      log.debug({ uid, eventId: existing.id }, "event deleted");
       return { success: true };
     } catch (error) {
+      log.error({ uid, error }, "failed to delete event");
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
@@ -167,11 +189,12 @@ export class GoogleCalendarProvider extends CalendarProvider {
     });
 
     if (!response.ok) {
+      log.warn({ status: response.status, uid }, "failed to find event by uid");
       return null;
     }
 
-    const data = (await response.json()) as { items?: GoogleEventResource[] };
-    return data.items?.[0] ?? null;
+    const { items } = (await response.json()) as { items?: GoogleEventResource[] };
+    return items?.[0] ?? null;
   }
 
   private toGoogleEvent(
