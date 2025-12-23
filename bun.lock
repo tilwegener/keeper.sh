@@ -19,6 +19,7 @@
         "@keeper.sh/pull-calendar": "workspace:*",
         "@keeper.sh/sync-calendar": "workspace:*",
         "drizzle-orm": "0.45.1",
+        "ts-ics": "2.4.0",
       },
       "devDependencies": {
         "@keeper.sh/typescript-config": "workspace:*",

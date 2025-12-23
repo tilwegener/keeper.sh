@@ -13,6 +13,7 @@ import { useSources, type CalendarSource } from "@/hooks/use-sources";
 import { useSubscription } from "@/hooks/use-subscription";
 import { useLinkedAccounts } from "@/hooks/use-linked-accounts";
 import { useSyncStatus } from "@/hooks/use-sync-status";
+import { useIcalToken } from "@/hooks/use-ical-token";
 import { authClient } from "@/lib/auth-client";
 import {
   button,
@@ -358,20 +359,27 @@ const SyncStatusDisplay = ({
       const timeLabel = formatEventTime(lastOperation.eventTime);
       return (
         <TextMuted>
-          {operationLabel} event at {timeLabel} ({progress.current + 1}/{progress.total})
+          {operationLabel} event at {timeLabel} ({progress.current + 1}/
+          {progress.total})
         </TextMuted>
       );
     }
 
     if (progress && progress.total > 0) {
-      return <TextMuted>{baseLabel} ({progress.current}/{progress.total})</TextMuted>;
+      return (
+        <TextMuted>
+          {baseLabel} ({progress.current}/{progress.total})
+        </TextMuted>
+      );
     }
     return <TextMuted>{baseLabel}...</TextMuted>;
   }
 
   return (
     <TextMuted>
-      {inSync ? `${remoteCount} events synced` : `${remoteCount}/${localCount} events`}
+      {inSync
+        ? `${remoteCount} events synced`
+        : `${remoteCount}/${localCount} events`}
     </TextMuted>
   );
 };
@@ -421,14 +429,17 @@ const isConnectable = (
 
 export const DestinationsSection = () => {
   const toastManager = Toast.useToastManager();
-  const [loadingProvider, setLoadingProvider] = useState<SupportedProvider | null>(null);
+  const [loadingProvider, setLoadingProvider] =
+    useState<SupportedProvider | null>(null);
   const { data: accounts, mutate: mutateAccounts } = useLinkedAccounts();
   const { data: syncStatus } = useSyncStatus();
 
   const isProviderConnected = (providerId: SupportedProvider) =>
     accounts?.some((account) => account.providerId === providerId) ?? false;
 
-  const getSyncStatus = (providerId: SupportedProvider): SyncStatusDisplayProps | undefined => {
+  const getSyncStatus = (
+    providerId: SupportedProvider,
+  ): SyncStatusDisplayProps | undefined => {
     const providerStatus = syncStatus?.[providerId];
     if (!providerStatus) return undefined;
     return {
@@ -484,11 +495,21 @@ export const DestinationsSection = () => {
             <DestinationItem
               key={destination.id}
               destination={destination}
-              isConnected={connectable && isProviderConnected(destination.providerId)}
-              isLoading={connectable && loadingProvider === destination.providerId}
-              onConnect={() => connectable && handleConnect(destination.providerId)}
-              onDisconnect={() => connectable && handleDisconnect(destination.providerId)}
-              syncStatus={connectable ? getSyncStatus(destination.providerId) : undefined}
+              isConnected={
+                connectable && isProviderConnected(destination.providerId)
+              }
+              isLoading={
+                connectable && loadingProvider === destination.providerId
+              }
+              onConnect={() =>
+                connectable && handleConnect(destination.providerId)
+              }
+              onDisconnect={() =>
+                connectable && handleDisconnect(destination.providerId)
+              }
+              syncStatus={
+                connectable ? getSyncStatus(destination.providerId) : undefined
+              }
             />
           );
         })}
@@ -497,11 +518,16 @@ export const DestinationsSection = () => {
   );
 };
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "";
+
 export const ICalLinkSection = () => {
   const toastManager = Toast.useToastManager();
-  const icalUrl = "https://keeper.sh/cal/abc123.ics";
+  const { token, isLoading } = useIcalToken();
+
+  const icalUrl = token ? new URL(`/cal/${token}.ics`, BASE_URL).toString() : "";
 
   const copyToClipboard = async () => {
+    if (!icalUrl) return;
     await navigator.clipboard.writeText(icalUrl);
     toastManager.add({ title: "Copied to clipboard" });
   };
@@ -515,12 +541,13 @@ export const ICalLinkSection = () => {
       <div className="flex gap-2">
         <input
           type="text"
-          value={icalUrl}
+          value={isLoading ? "Loading..." : icalUrl}
           readOnly
           className={input({ readonly: true, className: "flex-1" })}
         />
         <Button
           onClick={copyToClipboard}
+          disabled={isLoading || !token}
           className={button({ variant: "secondary" })}
         >
           Copy

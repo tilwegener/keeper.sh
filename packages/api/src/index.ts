@@ -1,4 +1,5 @@
 import { createSourceSchema } from "@keeper.sh/data-schemas";
+import { generateIcsCalendar, type IcsCalendar, type IcsEvent } from "ts-ics";
 import { auth } from "@keeper.sh/auth";
 import { database } from "@keeper.sh/database";
 import {
@@ -6,6 +7,7 @@ import {
   eventStatesTable,
   syncStatusTable,
 } from "@keeper.sh/database/schema";
+import { user as userTable } from "@keeper.sh/database";
 import { pullRemoteCalendar } from "@keeper.sh/pull-calendar";
 import { canAddSource } from "@keeper.sh/premium";
 import { fetchAndSyncSource } from "@keeper.sh/sync-calendar";
@@ -219,7 +221,10 @@ const server = Bun.serve<BroadcastData>({
           }
 
           syncDestinationsForUser(userId).catch((error) => {
-            log.error(error, "failed to sync destinations after source deletion");
+            log.error(
+              error,
+              "failed to sync destinations after source deletion",
+            );
           });
 
           return Response.json({ success: true });
@@ -334,8 +339,99 @@ const server = Bun.serve<BroadcastData>({
         }),
       ),
     },
+    "/api/ical/token": {
+      GET: withTracing(
+        withAuth(async (_request, userId) => {
+          const [userData] = await database
+            .select({ username: userTable.username })
+            .from(userTable)
+            .where(eq(userTable.id, userId))
+            .limit(1);
+
+          const identifier = userData?.username ?? userId;
+          return Response.json({ token: identifier });
+        }),
+      ),
+    },
+    "/cal/:identifier": {
+      GET: withTracing(async (request) => {
+        const { identifier } = request.params;
+
+        if (!identifier?.endsWith(".ics")) {
+          return new Response("Not found", { status: 404 });
+        }
+
+        const cleanIdentifier = identifier.slice(0, -4);
+
+        const [userByUsername] = await database
+          .select({ id: userTable.id })
+          .from(userTable)
+          .where(eq(userTable.username, cleanIdentifier))
+          .limit(1);
+
+        const [userById] = userByUsername
+          ? []
+          : await database
+              .select({ id: userTable.id })
+              .from(userTable)
+              .where(eq(userTable.id, cleanIdentifier))
+              .limit(1);
+
+        const userId = userByUsername?.id ?? userById?.id;
+
+        if (!userId) {
+          return new Response("Not found", { status: 404 });
+        }
+
+        const sources = await database
+          .select({ id: remoteICalSourcesTable.id })
+          .from(remoteICalSourcesTable)
+          .where(eq(remoteICalSourcesTable.userId, userId));
+
+        if (sources.length === 0) {
+          return new Response(formatIcal([]), {
+            headers: { "Content-Type": "text/calendar; charset=utf-8" },
+          });
+        }
+
+        const sourceIds = sources.map((s) => s.id);
+        const events = await database
+          .select()
+          .from(eventStatesTable)
+          .where(inArray(eventStatesTable.sourceId, sourceIds))
+          .orderBy(asc(eventStatesTable.startTime));
+
+        return new Response(formatIcal(events), {
+          headers: { "Content-Type": "text/calendar; charset=utf-8" },
+        });
+      }),
+    },
   },
 });
+
+interface CalendarEvent {
+  id: string;
+  startTime: Date;
+  endTime: Date;
+}
+
+const formatIcal = (events: CalendarEvent[]): string => {
+  const icsEvents: IcsEvent[] = events.map((event) => ({
+    uid: `${event.id}@keeper.sh`,
+    stamp: { date: new Date() },
+    start: { date: event.startTime },
+    end: { date: event.endTime },
+    summary: "Busy",
+  }));
+
+  const calendar: IcsCalendar = {
+    version: "2.0",
+    prodId: "-//Keeper//Keeper Calendar//EN",
+    events: icsEvents,
+  };
+
+  return generateIcsCalendar(calendar);
+};
 
 startSubscriber();
 

@@ -11,7 +11,8 @@ export async function DELETE(
 ) {
   const { id } = await params;
 
-  const response = await fetch(`${API_URL}/api/ics/${id}`, {
+  const url = new URL(`/api/ics/${id}`, API_URL);
+  const response = await fetch(url, {
     method: "DELETE",
     headers: {
       Cookie: request.headers.get("Cookie") || "",
