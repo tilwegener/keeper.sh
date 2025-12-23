@@ -45,7 +45,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
     clientSecret: env.GOOGLE_CLIENT_SECRET,
     accessType: "offline",
     prompt: "consent",
-    scope: ["https://www.googleapis.com/auth/calendar"],
+    scope: ["https://www.googleapis.com/auth/calendar.events"],
   };
 }
 
@@ -60,6 +60,11 @@ export const auth = betterAuth({
     enabled: !env.NO_EMAIL_REQUIRED,
   },
   socialProviders,
+  account: {
+    accountLinking: {
+      allowDifferentEmails: true,
+    },
+  },
   user: {
     deleteUser: {
       enabled: true,

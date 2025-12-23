@@ -66,6 +66,18 @@ export function TextMeta({
   );
 }
 
+export function TextMuted({
+  as: Component = "span",
+  className = "",
+  children,
+}: TextProps) {
+  return (
+    <Component className={`text-sm text-gray-400 ${className}`}>
+      {children}
+    </Component>
+  );
+}
+
 export function DangerLabel({
   as: Component = "span",
   className = "",

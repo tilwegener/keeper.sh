@@ -21,6 +21,9 @@ export interface DeleteResult {
 
 export interface ProviderConfig {
   userId: string;
-  accessToken?: string;
-  calendarId?: string;
+}
+
+export interface GoogleCalendarConfig extends ProviderConfig {
+  accessToken: string;
+  calendarId: string;
 }

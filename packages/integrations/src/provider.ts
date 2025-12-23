@@ -6,11 +6,11 @@ import type {
 } from "./types";
 import { generateEventUid, isKeeperEvent } from "./event-identity";
 
-export abstract class CalendarProvider {
+export abstract class CalendarProvider<TConfig extends ProviderConfig = ProviderConfig> {
   abstract readonly name: string;
   abstract readonly id: string;
 
-  constructor(protected readonly config: ProviderConfig) {}
+  constructor(protected readonly config: TConfig) {}
 
   abstract pushEvents(events: SyncableEvent[]): Promise<PushResult[]>;
   abstract deleteEvents(eventIds: string[]): Promise<DeleteResult[]>;

@@ -15,6 +15,7 @@
   "dependencies": {
     "@keeper.sh/auth": "workspace:*",
     "@keeper.sh/database": "workspace:*",
+    "@keeper.sh/integration-google-calendar": "workspace:*",
     "@keeper.sh/log": "workspace:*",
     "@keeper.sh/premium": "workspace:*",
     "@keeper.sh/sync-calendar": "workspace:*",

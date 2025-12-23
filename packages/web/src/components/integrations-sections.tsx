@@ -11,6 +11,8 @@ import { FormField } from "@/components/form-field";
 import { SectionHeader } from "@/components/section-header";
 import { useSources, type CalendarSource } from "@/hooks/use-sources";
 import { useSubscription } from "@/hooks/use-subscription";
+import { useLinkedAccounts } from "@/hooks/use-linked-accounts";
+import { authClient } from "@/lib/auth-client";
 import {
   button,
   input,
@@ -20,7 +22,7 @@ import {
   integrationName,
   integrationDescription,
 } from "@/styles";
-import { TextBody, BannerText } from "@/components/typography";
+import { TextBody, TextMuted, BannerText } from "@/components/typography";
 
 const SourceItem = ({
   source,
@@ -227,16 +229,31 @@ export const CalendarSourcesSection = () => {
   );
 };
 
-interface Destination {
+type SupportedProvider = "google";
+
+interface BaseDestination {
   id: string;
   name: string;
   description: string;
   icon?: string;
 }
 
+interface ConnectableDestination extends BaseDestination {
+  providerId: SupportedProvider;
+  comingSoon?: false;
+}
+
+interface ComingSoonDestination extends BaseDestination {
+  providerId?: never;
+  comingSoon: true;
+}
+
+type Destination = ConnectableDestination | ComingSoonDestination;
+
 const DESTINATIONS: Destination[] = [
   {
     id: "google",
+    providerId: "google",
     name: "Google Calendar",
     description: "Sync your aggregated events to Google Calendar",
     icon: "/integrations/icon-google.svg",
@@ -246,15 +263,69 @@ const DESTINATIONS: Destination[] = [
     name: "Outlook",
     description: "Sync your aggregated events to Outlook",
     icon: "/integrations/icon-outlook.svg",
+    comingSoon: true,
   },
   {
     id: "caldav",
     name: "CalDAV",
     description: "Sync to any CalDAV-compatible server",
+    comingSoon: true,
   },
 ];
 
-const DestinationItem = ({ destination }: { destination: Destination }) => (
+interface DestinationActionProps {
+  comingSoon?: boolean;
+  isConnected: boolean;
+  isLoading: boolean;
+  onConnect: () => void;
+  onDisconnect: () => void;
+}
+
+const DestinationAction = ({
+  comingSoon,
+  isConnected,
+  isLoading,
+  onConnect,
+  onDisconnect,
+}: DestinationActionProps) => {
+  if (comingSoon) {
+    return <TextMuted>Coming soon</TextMuted>;
+  }
+
+  if (isConnected) {
+    return (
+      <Button
+        onClick={onDisconnect}
+        disabled={isLoading}
+        className={button({ variant: "secondary" })}
+      >
+        {isLoading ? "..." : "Disconnect"}
+      </Button>
+    );
+  }
+
+  return (
+    <Button
+      onClick={onConnect}
+      disabled={isLoading}
+      className={button({ variant: "secondary" })}
+    >
+      {isLoading ? "..." : "Connect"}
+    </Button>
+  );
+};
+
+interface DestinationItemProps extends DestinationActionProps {
+  destination: Destination;
+}
+
+const DestinationItem = ({
+  destination,
+  isConnected,
+  isLoading,
+  onConnect,
+  onDisconnect,
+}: DestinationItemProps) => (
   <div className={integrationCard()}>
     <div className={integrationIcon()}>
       {destination.icon && (
@@ -270,23 +341,81 @@ const DestinationItem = ({ destination }: { destination: Destination }) => (
       <div className={integrationName()}>{destination.name}</div>
       <div className={integrationDescription()}>{destination.description}</div>
     </div>
-    <Button className={button({ variant: "secondary" })}>Connect</Button>
+    <DestinationAction
+      comingSoon={destination.comingSoon}
+      isConnected={isConnected}
+      isLoading={isLoading}
+      onConnect={onConnect}
+      onDisconnect={onDisconnect}
+    />
   </div>
 );
 
-export const DestinationsSection = () => (
-  <section className="flex flex-col gap-3">
-    <SectionHeader
-      title="Destinations"
-      description="Push your aggregated events to other calendar apps"
-    />
-    <div className="flex flex-col gap-1.5">
-      {DESTINATIONS.map((destination) => (
-        <DestinationItem key={destination.id} destination={destination} />
-      ))}
-    </div>
-  </section>
-);
+const isConnectable = (
+  destination: Destination,
+): destination is ConnectableDestination => !destination.comingSoon;
+
+export const DestinationsSection = () => {
+  const toastManager = Toast.useToastManager();
+  const [loadingProvider, setLoadingProvider] = useState<SupportedProvider | null>(null);
+  const { data: accounts, mutate: mutateAccounts } = useLinkedAccounts();
+
+  const isProviderConnected = (providerId: SupportedProvider) =>
+    accounts?.some((account) => account.providerId === providerId) ?? false;
+
+  const handleConnect = async (providerId: SupportedProvider) => {
+    setLoadingProvider(providerId);
+    try {
+      await authClient.linkSocial({
+        provider: providerId,
+        callbackURL: "/dashboard/integrations",
+      });
+      await mutateAccounts();
+      toastManager.add({ title: `Connected to ${providerId}` });
+    } catch {
+      toastManager.add({ title: `Failed to connect` });
+    } finally {
+      setLoadingProvider(null);
+    }
+  };
+
+  const handleDisconnect = async (providerId: SupportedProvider) => {
+    setLoadingProvider(providerId);
+    try {
+      await authClient.unlinkAccount({ providerId });
+      await mutateAccounts();
+      toastManager.add({ title: `Disconnected from ${providerId}` });
+    } catch {
+      toastManager.add({ title: `Failed to disconnect` });
+    } finally {
+      setLoadingProvider(null);
+    }
+  };
+
+  return (
+    <section className="flex flex-col gap-3">
+      <SectionHeader
+        title="Destinations"
+        description="Push your aggregated events to other calendar apps"
+      />
+      <div className="flex flex-col gap-1.5">
+        {DESTINATIONS.map((destination) => {
+          const connectable = isConnectable(destination);
+          return (
+            <DestinationItem
+              key={destination.id}
+              destination={destination}
+              isConnected={connectable && isProviderConnected(destination.providerId)}
+              isLoading={connectable && loadingProvider === destination.providerId}
+              onConnect={() => connectable && handleConnect(destination.providerId)}
+              onDisconnect={() => connectable && handleDisconnect(destination.providerId)}
+            />
+          );
+        })}
+      </div>
+    </section>
+  );
+};
 
 export const ICalLinkSection = () => {
   const toastManager = Toast.useToastManager();

@@ -9,4 +9,5 @@ export type {
   PushResult,
   DeleteResult,
   ProviderConfig,
+  GoogleCalendarConfig,
 } from "./types";
