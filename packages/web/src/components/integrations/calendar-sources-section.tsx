@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Button } from "@base-ui/react/button";
 import { FREE_SOURCE_LIMIT } from "@keeper.sh/premium/constants";
 import { Card } from "@/components/card";
+import { EmptyState } from "@/components/empty-state";
 import { GhostButton } from "@/components/ghost-button";
 import { Toast } from "@/components/toast-provider";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -20,7 +22,11 @@ import { useSubscription } from "@/hooks/use-subscription";
 import { button } from "@/styles";
 import { Link as LinkIcon, Plus } from "lucide-react";
 
-function getCountLabel(isLoading: boolean, count: number, noun: string): string {
+function getCountLabel(
+  isLoading: boolean,
+  count: number,
+  noun: string,
+): string {
   if (isLoading) return "Loading...";
   if (count === 1) return `1 ${noun}`;
   return `${count} ${noun}s`;
@@ -41,7 +47,9 @@ const SourceItem = ({ source, onRemove }: SourceItemProps) => {
           <LinkIcon size={14} className="text-zinc-500" />
         </IconBox>
         <div className="flex-1 min-w-0 flex flex-col">
-          <TextLabel as="h2" className="tracking-tight">{source.name}</TextLabel>
+          <TextLabel as="h2" className="tracking-tight">
+            {source.name}
+          </TextLabel>
           <TextCaption className="truncate">{source.url}</TextCaption>
         </div>
         <GhostButton variant="danger" onClick={open}>
@@ -189,6 +197,7 @@ export const CalendarSourcesSection = () => {
   };
 
   const countLabel = getCountLabel(isLoading, sources?.length ?? 0, "source");
+  const isEmpty = !isLoading && (!sources || sources.length === 0);
 
   return (
     <Section>
@@ -196,29 +205,44 @@ export const CalendarSourcesSection = () => {
         title="Calendar Sources"
         description="Add iCal links to import events from other calendars"
       />
-      <Card>
-        <div className="flex items-center justify-between px-3 py-2">
-          <TextLabel>{countLabel}</TextLabel>
-          <GhostButton
-            onClick={() => setIsDialogOpen(true)}
-            className="flex items-center gap-1"
-          >
-            <Plus size={12} />
-            New Source
-          </GhostButton>
-        </div>
-        {sources && sources.length > 0 && (
-          <div className="border-t border-zinc-200 divide-y divide-zinc-200">
-            {sources.map((source) => (
-              <SourceItem
-                key={source.id}
-                source={source}
-                onRemove={() => handleRemoveSource(source.id)}
-              />
-            ))}
+      {isEmpty ? (
+        <EmptyState
+          icon={<LinkIcon size={20} className="text-zinc-400" />}
+          message="No calendar sources yet"
+          action={
+            <Button
+              onClick={() => setIsDialogOpen(true)}
+              className={button({ variant: "primary", size: "xs" })}
+            >
+              Add Source
+            </Button>
+          }
+        />
+      ) : (
+        <Card>
+          <div className="flex items-center justify-between px-3 py-2">
+            <TextLabel>{countLabel}</TextLabel>
+            <GhostButton
+              onClick={() => setIsDialogOpen(true)}
+              className="flex items-center gap-1"
+            >
+              <Plus size={12} />
+              New Source
+            </GhostButton>
           </div>
-        )}
-      </Card>
+          {sources && sources.length > 0 && (
+            <div className="border-t border-zinc-200 divide-y divide-zinc-200">
+              {sources.map((source) => (
+                <SourceItem
+                  key={source.id}
+                  source={source}
+                  onRemove={() => handleRemoveSource(source.id)}
+                />
+              ))}
+            </div>
+          )}
+        </Card>
+      )}
       {isAtLimit && <UpgradeBanner />}
       {!isAtLimit && (
         <AddSourceDialog

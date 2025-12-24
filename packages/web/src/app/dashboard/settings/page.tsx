@@ -69,7 +69,7 @@ export default function SettingsPage() {
             </div>
             <Button
               onClick={() => setIsEditingName(true)}
-              className={button({ variant: "secondary", size: "sm" })}
+              className={button({ variant: "secondary", size: "xs" })}
             >
               Edit
             </Button>
@@ -96,7 +96,7 @@ export default function SettingsPage() {
             </div>
             <Button
               onClick={() => setIsChangingPassword(true)}
-              className={button({ variant: "secondary", size: "sm" })}
+              className={button({ variant: "secondary", size: "xs" })}
             >
               Change
             </Button>
@@ -120,7 +120,7 @@ export default function SettingsPage() {
             </div>
             <Button
               onClick={() => setIsDeletingAccount(true)}
-              className={button({ variant: "danger", size: "sm" })}
+              className={button({ variant: "danger", size: "xs" })}
             >
               Delete
             </Button>

@@ -2,11 +2,12 @@
 
 import { Receipt } from "lucide-react";
 import { Separator } from "@base-ui-components/react/separator";
+import { EmptyState } from "@/components/empty-state";
 import { SubscriptionPlans } from "@/components/subscription-plans";
 import { PageContent } from "@/components/page-content";
 import { Section } from "@/components/section";
 import { SectionHeader } from "@/components/section-header";
-import { TextBody, TextMeta, FieldValue } from "@/components/typography";
+import { TextMeta, FieldValue } from "@/components/typography";
 import { useSubscription } from "@/hooks/use-subscription";
 import { useOrders } from "@/hooks/use-orders";
 
@@ -24,13 +25,6 @@ function formatDate(date: Date) {
     day: "numeric",
   }).format(date);
 }
-
-const BillingHistoryEmptyState = () => (
-  <div className="flex flex-col items-center gap-2 py-6 border border-dashed border-zinc-300 rounded-md">
-    <Receipt size={20} className="text-zinc-400" />
-    <TextBody>No billing history yet</TextBody>
-  </div>
-);
 
 function BillingHistory() {
   const { data: orders, isLoading } = useOrders();
@@ -59,7 +53,10 @@ function BillingHistory() {
           title="Billing History"
           description="View your past invoices and payment history"
         />
-        <BillingHistoryEmptyState />
+        <EmptyState
+          icon={<Receipt size={20} className="text-zinc-400" />}
+          message="No billing history yet"
+        />
       </Section>
     );
   }
