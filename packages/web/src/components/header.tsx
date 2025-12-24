@@ -15,7 +15,7 @@ export const Header: FC = () => {
   const showMarketingNav = !isDashboard && !isAuthRoute;
 
   return (
-    <header className="border-b border-zinc-200">
+    <header>
       <div className="flex justify-between items-center max-w-3xl mx-auto px-4 py-2.5">
         <div className="flex items-center gap-4">
           <Link
