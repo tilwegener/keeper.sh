@@ -57,6 +57,7 @@ export async function signUpWithEmail(
     email,
     password,
     name,
+    callbackURL: "/dashboard",
   });
 
   if (error) {

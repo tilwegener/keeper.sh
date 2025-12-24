@@ -79,8 +79,15 @@ export type BroadcastMessage = typeof broadcastMessageSchema.infer;
 
 export const userSchema = type({
   id: "string",
-  username: "string",
+  "username?": "string",
   "name?": "string",
   "email?": "string",
 });
 export type User = typeof userSchema.infer;
+
+export const signUpBodySchema = type({
+  email: "string",
+  "name?": "string",
+  "password?": "string",
+});
+export type SignUpBody = typeof signUpBodySchema.infer;

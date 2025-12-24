@@ -1,97 +1,38 @@
-"use client";
-
-import { useEffect, type FC } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
+import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { Header } from "@/components/header";
-import {
-  AuthFormContainer,
-  AuthForm,
-  AuthFormTitle,
-  AuthFormError,
-  AuthFormField,
-  AuthFormSubmit,
-  AuthFormFooter,
-} from "@/components/auth-form";
-import { useFormSubmit } from "@/hooks/use-form-submit";
-import { signUpWithEmail } from "@/lib/auth";
+import { AuthFormContainer } from "@/components/auth-form";
+import { CompleteRegistrationForm } from "./form";
 
-const CompleteRegistrationForm: FC = () => {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const email = searchParams.get("email");
-  const { isSubmitting, error, submit } = useFormSubmit();
+interface FormLoaderProps {
+  searchParams: Promise<{ email?: string }>;
+}
 
-  useEffect(() => {
-    if (email === null) {
-      router.replace("/register");
-    }
-  }, [email, router]);
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const name = String(formData.get("name") ?? "");
-    const password = String(formData.get("password") ?? "");
-
-    await submit(async () => {
-      await signUpWithEmail(email!, password, name);
-      router.push("/verify-email");
-    });
-  };
+async function FormLoader({ searchParams }: FormLoaderProps) {
+  const { email } = await searchParams;
 
   if (!email) {
-    return null;
+    redirect("/register");
   }
 
+  return <CompleteRegistrationForm email={email} />;
+}
+
+interface CompleteRegistrationPageProps {
+  searchParams: Promise<{ email?: string }>;
+}
+
+export default function CompleteRegistrationPage({
+  searchParams,
+}: CompleteRegistrationPageProps) {
   return (
-    <AuthForm onSubmit={handleSubmit}>
-      <AuthFormTitle>Complete Registration</AuthFormTitle>
-      <AuthFormError message={error} />
-      <AuthFormField
-        name="email"
-        label="Email"
-        type="email"
-        disabled
-        defaultValue={email}
-        autoComplete="email"
-      />
-      <AuthFormField
-        name="name"
-        label="Name"
-        required
-        autoComplete="name"
-      />
-      <AuthFormField
-        name="password"
-        label="Password"
-        type="password"
-        required
-        minLength={8}
-        maxLength={128}
-        autoComplete="new-password"
-      />
-      <AuthFormSubmit isLoading={isSubmitting}>Create account</AuthFormSubmit>
-      <AuthFormFooter>
-        Already have an account?{" "}
-        <Link
-          href="/login"
-          className="text-foreground font-medium no-underline hover:underline"
-        >
-          Login
-        </Link>
-      </AuthFormFooter>
-    </AuthForm>
+    <div className="flex flex-col flex-1">
+      <Header />
+      <AuthFormContainer>
+        <Suspense>
+          <FormLoader searchParams={searchParams} />
+        </Suspense>
+      </AuthFormContainer>
+    </div>
   );
-};
-
-const CompleteRegistrationPage: FC = () => (
-  <div className="flex flex-col flex-1">
-    <Header />
-    <AuthFormContainer>
-      <CompleteRegistrationForm />
-    </AuthFormContainer>
-  </div>
-);
-
-export default CompleteRegistrationPage;
+}

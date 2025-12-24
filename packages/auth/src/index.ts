@@ -1,4 +1,5 @@
 import { betterAuth } from "better-auth";
+import { createAuthMiddleware } from "better-auth/api";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { passkey } from "@better-auth/passkey";
 import { polar, checkout, portal } from "@polar-sh/better-auth";
@@ -7,8 +8,9 @@ import { Resend } from "resend";
 import { usernameOnly } from "@keeper.sh/auth-plugin-username-only";
 import { database } from "@keeper.sh/database";
 import * as authSchema from "@keeper.sh/database/auth-schema";
+import { signUpBodySchema } from "@keeper.sh/data-schemas";
 import env from "@keeper.sh/env/auth";
-import type { BetterAuthPlugin } from "better-auth";
+import type { BetterAuthPlugin, User } from "better-auth";
 
 interface EmailUser {
   email: string;
@@ -80,9 +82,8 @@ export const auth = betterAuth({
   }),
   secret: env.BETTER_AUTH_SECRET,
   baseURL: env.BETTER_AUTH_URL,
-  emailAndPassword: {
-    enabled: !env.USERNAME_ONLY_MODE,
-    requireEmailVerification: !env.USERNAME_ONLY_MODE,
+  emailVerification: {
+    autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url }: SendEmailParams) => {
       if (!resend) return;
       await resend.emails.send({
@@ -93,6 +94,10 @@ export const auth = betterAuth({
         },
       });
     },
+  },
+  emailAndPassword: {
+    enabled: !env.USERNAME_ONLY_MODE,
+    requireEmailVerification: !env.USERNAME_ONLY_MODE,
     sendResetPassword: async ({ user, url }: SendEmailParams) => {
       if (!resend) return;
       await resend.emails.send({
@@ -121,6 +126,21 @@ export const auth = betterAuth({
         });
       },
     },
+  },
+  hooks: {
+    before: createAuthMiddleware(async (context) => {
+      if (context.path !== "/sign-up/email") return;
+      const { email } = signUpBodySchema.assert(context.body);
+      const existingUser = await context.context.adapter.findOne<User>({
+        model: "user",
+        where: [
+          { field: "email", value: email },
+          { field: "emailVerified", value: false },
+        ],
+      });
+      if (!existingUser) return;
+      await context.context.internalAdapter.deleteUser(existingUser.id);
+    }),
   },
   plugins,
 });
