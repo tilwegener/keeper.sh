@@ -10,7 +10,7 @@ import type { BetterAuthPlugin } from "better-auth";
 
 const plugins: BetterAuthPlugin[] = [];
 
-if (env.NO_EMAIL_REQUIRED) {
+if (env.USERNAME_ONLY_MODE) {
   plugins.push(usernameOnly());
 }
 
@@ -57,7 +57,7 @@ export const auth = betterAuth({
   secret: env.BETTER_AUTH_SECRET,
   baseURL: env.BETTER_AUTH_URL,
   emailAndPassword: {
-    enabled: !env.NO_EMAIL_REQUIRED,
+    enabled: !env.USERNAME_ONLY_MODE,
   },
   socialProviders,
   account: {
