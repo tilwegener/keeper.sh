@@ -12,11 +12,16 @@ import {
 } from "@/components/typography";
 
 const authFormSubmit = tv({
-  base: "w-full py-1.5 px-3 mt-1 border-none rounded-md text-sm font-medium bg-primary text-primary-foreground cursor-pointer transition-colors duration-150 hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed",
+  base: "w-full py-1.5 px-3 border-none rounded-md text-sm font-medium bg-primary text-primary-foreground cursor-pointer transition-colors duration-150 hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed",
 });
 
 const authFormInput = tv({
   base: "w-full py-1.5 px-2 border border-border-input rounded-md text-sm transition-[border-color,box-shadow] duration-150 focus:outline-none focus:border-border-emphasis focus:ring-3 focus:ring-focus-ring",
+  variants: {
+    disabled: {
+      true: "bg-surface-subtle text-foreground-muted cursor-not-allowed",
+    },
+  },
 });
 
 export const AuthFormContainer: FC<PropsWithChildren> = ({ children }) => (
@@ -34,7 +39,7 @@ export const AuthForm: FC<PropsWithChildren<AuthFormProps>> = ({
   children,
 }) => (
   <Form
-    className="w-full max-w-xs p-4 rounded-md bg-surface"
+    className="w-full max-w-xs p-4 rounded-md bg-surface flex flex-col gap-2"
     onSubmit={onSubmit}
   >
     {children}
@@ -42,7 +47,7 @@ export const AuthForm: FC<PropsWithChildren<AuthFormProps>> = ({
 );
 
 export const AuthFormTitle: FC<PropsWithChildren> = ({ children }) => (
-  <CardTitle as="h1" className="mb-3 text-center">
+  <CardTitle as="h1" className="text-center">
     {children}
   </CardTitle>
 );
@@ -54,7 +59,7 @@ interface AuthFormErrorProps {
 export const AuthFormError: FC<AuthFormErrorProps> = ({ message }) => {
   if (!message) return null;
   return (
-    <div className="p-2 mb-3 rounded-md bg-destructive-surface border border-destructive-border">
+    <div className="px-2 py-1 rounded-md bg-destructive-surface border border-destructive-border">
       <DangerText className="text-xs">{message}</DangerText>
     </div>
   );
@@ -63,26 +68,35 @@ export const AuthFormError: FC<AuthFormErrorProps> = ({ message }) => {
 interface AuthFormFieldProps {
   name: string;
   label: string;
+  labelAction?: React.ReactNode;
   type?: string;
   required?: boolean;
   autoComplete?: string;
   minLength?: number;
   maxLength?: number;
+  disabled?: boolean;
+  defaultValue?: string;
 }
 
 export const AuthFormField: FC<AuthFormFieldProps> = ({
   name,
   label: labelText,
+  labelAction,
   type = "text",
   required = false,
   autoComplete,
   minLength,
   maxLength,
+  disabled,
+  defaultValue,
 }) => (
-  <Field.Root name={name} className="mb-3">
-    <FieldLabel as="span" className="mb-1 block">
-      {labelText}
-    </FieldLabel>
+  <Field.Root name={name} className="flex flex-col gap-1">
+    <div className="flex items-center justify-between">
+      <FieldLabel as="span">
+        {labelText}
+      </FieldLabel>
+      {labelAction}
+    </div>
     <Input
       name={name}
       type={type}
@@ -90,7 +104,9 @@ export const AuthFormField: FC<AuthFormFieldProps> = ({
       autoComplete={autoComplete}
       minLength={minLength}
       maxLength={maxLength}
-      className={authFormInput()}
+      disabled={disabled}
+      defaultValue={defaultValue}
+      className={authFormInput({ disabled })}
     />
   </Field.Root>
 );
@@ -109,5 +125,44 @@ export const AuthFormSubmit: FC<PropsWithChildren<AuthFormSubmitProps>> = ({
 );
 
 export const AuthFormFooter: FC<PropsWithChildren> = ({ children }) => (
-  <TextBody className="text-xs mt-3 text-center">{children}</TextBody>
+  <TextBody className="text-xs text-center">{children}</TextBody>
+);
+
+export const AuthFormDivider: FC = () => (
+  <div className="flex items-center gap-3">
+    <div className="flex-1 h-px bg-border" />
+    <span className="text-xs text-foreground-muted">or</span>
+    <div className="flex-1 h-px bg-border" />
+  </div>
+);
+
+const authSocialButton = tv({
+  base: "w-full py-1.5 px-3 flex items-center justify-center gap-2 border border-border rounded-md text-sm font-medium bg-surface cursor-pointer transition-colors duration-150 hover:bg-surface-subtle disabled:opacity-50 disabled:cursor-not-allowed",
+});
+
+interface AuthSocialButtonProps {
+  onClick: () => void;
+  isLoading?: boolean;
+  icon: React.ReactNode;
+}
+
+export const AuthSocialButton: FC<PropsWithChildren<AuthSocialButtonProps>> = ({
+  onClick,
+  isLoading,
+  icon,
+  children,
+}) => (
+  <button
+    type="button"
+    onClick={onClick}
+    disabled={isLoading}
+    className={authSocialButton()}
+  >
+    {icon}
+    {children}
+  </button>
+);
+
+export const AuthSocialButtons: FC<PropsWithChildren> = ({ children }) => (
+  <div className="flex flex-col gap-2">{children}</div>
 );

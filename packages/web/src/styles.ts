@@ -10,6 +10,8 @@ export const button = tv({
         "bg-transparent border border-border-input text-foreground hover:bg-surface-subtle hover:border-foreground-subtle",
       danger:
         "bg-transparent border border-destructive-border text-destructive hover:bg-destructive-surface",
+      ghost:
+        "bg-transparent border-none text-foreground-muted hover:text-foreground hover:bg-surface-subtle",
     },
     size: {
       default: "py-2 px-4 text-sm",

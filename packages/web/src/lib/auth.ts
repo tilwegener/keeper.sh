@@ -1,3 +1,8 @@
+import { authClient } from "@/lib/auth-client";
+
+export const isUsernameOnlyMode =
+  process.env.NEXT_PUBLIC_USERNAME_ONLY_MODE === "true";
+
 export async function signIn(username: string, password: string) {
   const response = await fetch("/api/auth/username-only/sign-in", {
     method: "POST",
@@ -30,6 +35,70 @@ export async function signUp(
   }
 
   return response.json();
+}
+
+export async function signInWithEmail(email: string, password: string) {
+  const { error } = await authClient.signIn.email({
+    email,
+    password,
+  });
+
+  if (error) {
+    throw new Error(error.message ?? "Sign in failed");
+  }
+}
+
+export async function signUpWithEmail(
+  email: string,
+  password: string,
+  name: string,
+) {
+  const { error } = await authClient.signUp.email({
+    email,
+    password,
+    name,
+  });
+
+  if (error) {
+    throw new Error(error.message ?? "Sign up failed");
+  }
+}
+
+export async function signInWithGoogle() {
+  await authClient.signIn.social({
+    provider: "google",
+    callbackURL: "/dashboard",
+  });
+}
+
+export async function signInWithPasskey() {
+  const { error } = await authClient.signIn.passkey();
+
+  if (error) {
+    throw new Error(error.message ?? "Something went wrong with the passkey");
+  }
+}
+
+export async function forgotPassword(email: string) {
+  const { error } = await authClient.requestPasswordReset({
+    email,
+    redirectTo: "/reset-password",
+  });
+
+  if (error) {
+    throw new Error(error.message ?? "Failed to send reset email");
+  }
+}
+
+export async function resetPassword(token: string, newPassword: string) {
+  const { error } = await authClient.resetPassword({
+    token,
+    newPassword,
+  });
+
+  if (error) {
+    throw new Error(error.message ?? "Failed to reset password");
+  }
 }
 
 export async function signOut() {

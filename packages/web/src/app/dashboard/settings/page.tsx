@@ -1,9 +1,12 @@
 "use client";
 
+import type { FC } from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import useSWR from "swr";
 import { Button } from "@base-ui/react/button";
 import { Separator } from "@base-ui/react/separator";
+import { Fingerprint, Trash2 } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { Card } from "@/components/card";
 import { Toast } from "@/components/toast-provider";
@@ -15,14 +18,87 @@ import {
 import { PageContent } from "@/components/page-content";
 import { Section } from "@/components/section";
 import { SectionHeader } from "@/components/section-header";
+import { EmptyState } from "@/components/empty-state";
+import { ListSkeleton } from "@/components/list-skeleton";
 import {
   FieldLabel,
   FieldValue,
   DangerFieldLabel,
   DangerFieldValue,
+  TextLabel,
+  TextCaption,
 } from "@/components/typography";
-import { updateUser, changePassword, deleteAccount, signOut } from "@/lib/auth";
+import {
+  updateUser,
+  changePassword,
+  deleteAccount,
+  signOut,
+  isUsernameOnlyMode,
+} from "@/lib/auth";
+import { authClient } from "@/lib/auth-client";
 import { button } from "@/styles";
+
+const fetchPasskeys = async () => {
+  const { data, error } = await authClient.passkey.listUserPasskeys();
+  if (error) throw error;
+  return data ?? [];
+};
+
+type Passkey = Awaited<ReturnType<typeof fetchPasskeys>>[number];
+
+interface PasskeysListProps {
+  passkeys: Passkey[] | undefined;
+  isLoading: boolean;
+  onDelete: (id: string) => void;
+}
+
+const PasskeysList: FC<PasskeysListProps> = ({
+  passkeys,
+  isLoading,
+  onDelete,
+}) => {
+  if (isLoading) {
+    return <ListSkeleton rows={1} />;
+  }
+
+  if (!passkeys || passkeys.length === 0) {
+    return (
+      <EmptyState
+        icon={<Fingerprint className="size-5 text-foreground-subtle" />}
+        message="No passkeys added yet"
+      />
+    );
+  }
+
+  return (
+    <Card padding="none">
+      <div className="divide-y divide-border">
+        {passkeys.map((passkey) => (
+          <div
+            key={passkey.id}
+            className="flex items-center justify-between px-3 py-2"
+          >
+            <div className="flex items-center gap-2">
+              <Fingerprint className="size-4 text-foreground-muted" />
+              <div>
+                <TextLabel as="div">{passkey.name ?? "Passkey"}</TextLabel>
+                <TextCaption>
+                  Added {new Date(passkey.createdAt).toLocaleDateString()}
+                </TextCaption>
+              </div>
+            </div>
+            <Button
+              onClick={() => onDelete(passkey.id)}
+              className={button({ variant: "ghost", size: "xs" })}
+            >
+              <Trash2 className="size-4 text-foreground-muted" />
+            </Button>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
 
 export default function SettingsPage() {
   const { user, refresh } = useAuth();
@@ -32,6 +108,13 @@ export default function SettingsPage() {
   const [isEditingName, setIsEditingName] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [isAddingPasskey, setIsAddingPasskey] = useState(false);
+
+  const {
+    data: passkeys,
+    isLoading: isLoadingPasskeys,
+    mutate: mutatePasskeys,
+  } = useSWR(!isUsernameOnlyMode ? "passkeys" : null, fetchPasskeys);
 
   const handleUpdateName = async (name: string) => {
     await updateUser({ name });
@@ -51,6 +134,31 @@ export default function SettingsPage() {
     await deleteAccount(password);
     await signOut();
     router.push("/");
+  };
+
+  const handleAddPasskey = async () => {
+    setIsAddingPasskey(true);
+    try {
+      const { error } = await authClient.passkey.addPasskey();
+      if (error) {
+        toastManager.add({ title: error.message ?? "Failed to add passkey" });
+        return;
+      }
+      await mutatePasskeys();
+      toastManager.add({ title: "Passkey added" });
+    } finally {
+      setIsAddingPasskey(false);
+    }
+  };
+
+  const handleDeletePasskey = async (id: string) => {
+    const { error } = await authClient.passkey.deletePasskey({ id });
+    if (error) {
+      toastManager.add({ title: error.message ?? "Failed to delete passkey" });
+      return;
+    }
+    await mutatePasskeys();
+    toastManager.add({ title: "Passkey deleted" });
   };
 
   return (
@@ -76,8 +184,12 @@ export default function SettingsPage() {
           </div>
           <Separator className="bg-border h-px" />
           <div>
-            <FieldLabel as="div">Username</FieldLabel>
-            <FieldValue as="div">{user?.username}</FieldValue>
+            <FieldLabel as="div">
+              {isUsernameOnlyMode ? "Username" : "Email"}
+            </FieldLabel>
+            <FieldValue as="div">
+              {isUsernameOnlyMode ? user?.username : user?.email}
+            </FieldValue>
           </div>
         </Card>
       </Section>
@@ -103,6 +215,30 @@ export default function SettingsPage() {
           </div>
         </Card>
       </Section>
+
+      {!isUsernameOnlyMode && (
+        <Section>
+          <SectionHeader
+            title="Passkeys"
+            description="Manage passkeys for passwordless sign-in"
+            action={
+              <Button
+                onClick={handleAddPasskey}
+                disabled={isAddingPasskey}
+                className={button({ variant: "secondary", size: "xs" })}
+              >
+                Add passkey
+              </Button>
+            }
+          />
+
+          <PasskeysList
+            passkeys={passkeys}
+            isLoading={isLoadingPasskeys}
+            onDelete={handleDeletePasskey}
+          />
+        </Section>
+      )}
 
       <Section>
         <SectionHeader
