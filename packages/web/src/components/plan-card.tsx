@@ -204,7 +204,9 @@ export const PlanCard = ({
         <span className="text-3xl font-bold tracking-tight text-foreground">
           ${plan.price}
         </span>
-        <span className="text-sm text-foreground-muted font-normal">{plan.period}</span>
+        <span className="text-sm text-foreground-muted font-normal">
+          {plan.period}
+        </span>
       </div>
 
       <p className="text-sm text-foreground-muted mb-4">{plan.description}</p>

@@ -15,7 +15,7 @@
   --color-foreground-disabled: var(--color-zinc-300);
 
   --color-border: var(--color-zinc-200);
-  --color-border-emphasis: var(--color-zinc-900);
+  --color-border-emphasis: var(--color-blue-500);
   --color-border-input: var(--color-zinc-300);
 
   --color-primary: var(--color-zinc-900);
@@ -43,11 +43,11 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --color-background: var(--color-zinc-950);
-    --color-surface: var(--color-zinc-900);
-    --color-surface-elevated: var(--color-zinc-800);
-    --color-surface-subtle: var(--color-zinc-800);
-    --color-surface-muted: var(--color-zinc-700);
-    --color-surface-skeleton: var(--color-zinc-600);
+    --color-surface: var(--color-zinc-950);
+    --color-surface-elevated: var(--color-zinc-900);
+    --color-surface-subtle: var(--color-zinc-900);
+    --color-surface-muted: var(--color-zinc-800);
+    --color-surface-skeleton: var(--color-zinc-700);
 
     --color-foreground: var(--color-zinc-50);
     --color-foreground-secondary: var(--color-zinc-300);
@@ -55,9 +55,9 @@
     --color-foreground-subtle: var(--color-zinc-500);
     --color-foreground-disabled: var(--color-zinc-600);
 
-    --color-border: var(--color-zinc-700);
-    --color-border-emphasis: var(--color-zinc-200);
-    --color-border-input: var(--color-zinc-600);
+    --color-border: var(--color-zinc-800);
+    --color-border-emphasis: var(--color-zinc-500);
+    --color-border-input: var(--color-zinc-800);
 
     --color-primary: var(--color-zinc-50);
     --color-primary-hover: var(--color-zinc-200);
