@@ -78,7 +78,7 @@ const UsernameLoginForm: FC = () => {
 
 const EmailLoginForm: FC = () => {
   const router = useRouter();
-  const { refresh } = useAuth();
+  const { user, refresh } = useAuth();
   const { isSubmitting, error, submit } = useFormSubmit();
   const [isRedirecting, setIsRedirecting] = useState(false);
 
@@ -89,8 +89,18 @@ const EmailLoginForm: FC = () => {
     ) {
       return;
     }
-    void authClient.signIn.passkey({ autoFill: true });
-  }, []);
+    void authClient.signIn.passkey({ autoFill: true }).then(async ({ error }) => {
+      if (!error) {
+        await refresh();
+      }
+    });
+  }, [refresh]);
+
+  useEffect(() => {
+    if (user) {
+      router.push("/dashboard");
+    }
+  }, [user, router]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
