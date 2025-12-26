@@ -13,7 +13,7 @@ export const createSignInEndpoint = () =>
     {
       method: "POST",
       body: z.object({
-        username: z.string(),
+        username: z.string().regex(/^[a-zA-Z0-9._-]+$/),
         password: z.string(),
       }),
     },

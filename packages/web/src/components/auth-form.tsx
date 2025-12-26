@@ -69,6 +69,7 @@ interface AuthFormFieldProps {
   autoComplete?: string;
   minLength?: number;
   maxLength?: number;
+  pattern?: string;
   disabled?: boolean;
   defaultValue?: string;
 }
@@ -82,6 +83,7 @@ export const AuthFormField: FC<AuthFormFieldProps> = ({
   autoComplete,
   minLength,
   maxLength,
+  pattern,
   disabled,
   defaultValue,
 }) => (
@@ -94,6 +96,7 @@ export const AuthFormField: FC<AuthFormFieldProps> = ({
       autoComplete={autoComplete}
       minLength={minLength}
       maxLength={maxLength}
+      pattern={pattern}
       disabled={disabled}
       defaultValue={defaultValue}
       className={authFormInput({ disabled })}

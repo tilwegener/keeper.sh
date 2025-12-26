@@ -13,7 +13,11 @@ export const createSignUpEndpoint = (config: UsernameOnlyConfig) =>
         username: z
           .string()
           .min(config.minUsernameLength)
-          .max(config.maxUsernameLength),
+          .max(config.maxUsernameLength)
+          .regex(
+            /^[a-zA-Z0-9._-]+$/,
+            "username can only contain letters, numbers, dots, underscores, and hyphens",
+          ),
         password: z
           .string()
           .min(config.minPasswordLength)

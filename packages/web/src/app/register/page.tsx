@@ -49,6 +49,7 @@ const UsernameRegisterForm: FC = () => {
         required
         minLength={3}
         maxLength={32}
+        pattern="^[a-zA-Z0-9._-]+$"
         autoComplete="username"
       />
       <AuthFormField
