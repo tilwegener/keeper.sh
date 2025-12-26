@@ -8,7 +8,7 @@ const menuItemStyle = tv({
     variant: {
       default:
         "text-foreground-secondary hover:bg-surface-muted cursor-pointer",
-      danger: "text-destructive hover:bg-surface-subtle cursor-pointer",
+      danger: "text-destructive hover:bg-surface-muted cursor-pointer",
       disabled: "text-foreground-subtle cursor-not-allowed",
     },
   },
