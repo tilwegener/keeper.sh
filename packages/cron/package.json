@@ -17,12 +17,14 @@
     "typescript": "5.9.3"
   },
   "dependencies": {
+    "@keeper.sh/auth": "workspace:*",
     "@keeper.sh/calendar": "workspace:*",
     "@keeper.sh/database": "workspace:*",
-    "@keeper.sh/integrations": "workspace:*",
     "@keeper.sh/integration-google-calendar": "workspace:*",
+    "@keeper.sh/integrations": "workspace:*",
     "@keeper.sh/log": "workspace:*",
     "@keeper.sh/premium": "workspace:*",
-    "cronbake": "0.4.0"
+    "cronbake": "0.4.0",
+    "drizzle-orm": "^0.45.1"
   }
 }
