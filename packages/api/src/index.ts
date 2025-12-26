@@ -399,6 +399,7 @@ const server = Bun.serve<BroadcastData>({
     },
     "/api/destinations/callback/:provider": {
       GET: withTracing(async (request) => {
+        const { provider } = request.params;
         const url = new URL(request.url);
         const code = url.searchParams.get("code");
         const state = url.searchParams.get("state");
@@ -409,6 +410,11 @@ const server = Bun.serve<BroadcastData>({
 
         const errorUrl = new URL("/dashboard/integrations", env.BETTER_AUTH_URL);
         errorUrl.searchParams.set("destination", "error");
+
+        if (!provider) {
+          log.warn("Missing provider in callback URL");
+          return Response.redirect(errorUrl.toString());
+        }
 
         if (error) {
           log.warn({ error }, "OAuth error returned from provider");
@@ -428,7 +434,7 @@ const server = Bun.serve<BroadcastData>({
 
         try {
           const callbackUrl = new URL(
-            "/api/destinations/callback",
+            `/api/destinations/callback/${provider}`,
             env.BETTER_AUTH_URL,
           );
           const tokens = await exchangeCodeForTokens(code, callbackUrl.toString());
@@ -443,7 +449,7 @@ const server = Bun.serve<BroadcastData>({
 
           await saveCalendarDestination(
             userId,
-            "google",
+            provider,
             userInfo.id,
             userInfo.email,
             tokens.access_token,
@@ -451,7 +457,7 @@ const server = Bun.serve<BroadcastData>({
             expiresAt,
           );
 
-          log.info({ userId, provider: "google" }, "calendar destination connected");
+          log.info({ userId, provider }, "calendar destination connected");
 
           syncDestinationsForUser(userId).catch((err) => {
             log.error(err, "failed to sync after destination connection");
