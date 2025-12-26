@@ -51,6 +51,7 @@ Before using Keeper, please take into account the following.
     1. [@keeper.sh/integration-google-calendar](./packages/integration-google-calendar)
     1. [@keeper.sh/integrations](./packages/integrations)
     1. [@keeper.sh/log](./packages/log)
+    1. [@keeper.sh/oauth-google](./packages/oauth-google)
     1. [@keeper.sh/premium](./packages/premium)
     1. [@keeper.sh/pull-calendar](./packages/pull-calendar)
     1. [@keeper.sh/redis](./packages/redis)
