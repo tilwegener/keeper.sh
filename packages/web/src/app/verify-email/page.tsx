@@ -11,6 +11,11 @@ import { authClient } from "@/lib/auth-client";
 import { useFormSubmit } from "@/hooks/use-form-submit";
 import { CardTitle, TextBody } from "@/components/typography";
 
+const getPendingEmail = () => {
+  if (typeof window === "undefined") return null;
+  return sessionStorage.getItem("pendingVerificationEmail");
+};
+
 export default function VerifyEmailPage() {
   const router = useRouter();
   const { user, isLoading } = useAuth();
@@ -18,12 +23,14 @@ export default function VerifyEmailPage() {
 
   useEffect(() => {
     if (!isLoading && user?.emailVerified) {
+      sessionStorage.removeItem("pendingVerificationEmail");
       router.replace("/dashboard");
     }
   }, [user, isLoading, router]);
 
+  const email = user?.email ?? getPendingEmail();
+
   async function handleResend() {
-    const email = user?.email;
     if (!email) return;
 
     await submit(async () => {
@@ -71,7 +78,7 @@ export default function VerifyEmailPage() {
           <Button
             onClick={handleResend}
             isLoading={isSubmitting}
-            disabled={!user?.email}
+            disabled={!email}
             className="w-full py-1.5 px-3 border border-border rounded-md text-sm font-medium bg-surface cursor-pointer transition-colors duration-150 hover:bg-surface-subtle disabled:opacity-50"
           >
             Resend verification email

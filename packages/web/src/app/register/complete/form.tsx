@@ -31,6 +31,7 @@ export const CompleteRegistrationForm: FC<CompleteRegistrationFormProps> = ({
 
     await submit(async () => {
       await signUpWithEmail(email, password);
+      sessionStorage.setItem("pendingVerificationEmail", email);
       router.push("/verify-email");
     });
   };

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@base-ui/react/button";
 import { Menu } from "@base-ui/react/menu";
@@ -247,6 +248,8 @@ const isConnectable = (
 ): destination is ConnectableDestination => !destination.comingSoon;
 
 export const DestinationsSection = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const toastManager = Toast.useToastManager();
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const {
@@ -255,6 +258,17 @@ export const DestinationsSection = () => {
     mutate: mutateAccounts,
   } = useLinkedAccounts();
   const { data: syncStatus } = useSyncStatus();
+
+  const error = searchParams.get("error");
+  const errorHandled = useRef(false);
+
+  useEffect(() => {
+    if (error && !errorHandled.current) {
+      errorHandled.current = true;
+      toastManager.add({ title: error });
+      router.replace("/dashboard/integrations");
+    }
+  }, [error]);
 
   const getDestinationConfig = (
     providerId: string,

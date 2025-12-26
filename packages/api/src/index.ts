@@ -485,6 +485,8 @@ const server = Bun.serve<BroadcastData>({
           return Response.redirect(successUrl.toString());
         } catch (err) {
           log.error(err, "failed to complete OAuth callback");
+          const message = err instanceof Error ? err.message : "Failed to connect";
+          errorUrl.searchParams.set("error", message);
           return Response.redirect(errorUrl.toString());
         }
       }),

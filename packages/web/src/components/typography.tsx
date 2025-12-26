@@ -32,7 +32,7 @@ const textMuted = tv({ base: "text-sm text-foreground-subtle" });
 const dangerLabel = tv({ base: "text-sm font-medium text-destructive" });
 const dangerText = tv({ base: "text-sm text-destructive" });
 const dangerFieldLabel = tv({
-  base: "text-xs font-medium text-destructive-emphasis tracking-tight",
+  base: "text-xs font-medium text-destructive tracking-tight",
 });
 const dangerFieldValue = tv({
   base: "text-sm text-destructive tracking-tight",
