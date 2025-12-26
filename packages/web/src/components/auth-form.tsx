@@ -16,7 +16,7 @@ const authFormSubmit = tv({
 });
 
 const authFormInput = tv({
-  base: "w-full py-1.5 px-2 border border-border-input rounded-md text-sm transition-[border-color,box-shadow] duration-150 focus:outline-none focus:border-border-emphasis focus:ring-3 focus:ring-focus-ring",
+  base: "w-full py-1.5 px-2 border border-border-input rounded-md text-sm transition-[border-color,box-shadow] duration-150 focus:outline-none focus:border-border-emphasis focus:ring-3 focus:ring-focus-ring text-foreground",
   variants: {
     disabled: {
       true: "bg-surface-subtle text-foreground-muted cursor-not-allowed",
@@ -92,9 +92,7 @@ export const AuthFormField: FC<AuthFormFieldProps> = ({
 }) => (
   <Field.Root name={name} className="flex flex-col gap-1">
     <div className="flex items-center justify-between">
-      <FieldLabel as="span">
-        {labelText}
-      </FieldLabel>
+      <FieldLabel as="span">{labelText}</FieldLabel>
       {labelAction}
     </div>
     <Input

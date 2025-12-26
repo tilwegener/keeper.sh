@@ -28,7 +28,7 @@ export const button = tv({
 });
 
 export const input = tv({
-  base: "w-full border border-border-input rounded-md transition-[border-color,box-shadow] duration-150 focus:outline-none focus:border-border-emphasis focus:ring-3 focus:ring-focus-ring",
+  base: "w-full border border-border-input rounded-md text-foreground transition-[border-color,box-shadow] duration-150 focus:outline-none focus:border-border-emphasis focus:ring-3 focus:ring-focus-ring",
   variants: {
     readonly: {
       true: "bg-surface-subtle text-foreground-secondary",
