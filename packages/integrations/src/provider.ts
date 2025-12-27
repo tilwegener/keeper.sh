@@ -7,6 +7,7 @@ import type {
   ProviderConfig,
   SyncOperation,
   SlotOperations,
+  ListRemoteEventsOptions,
 } from "./types";
 import type { SyncStatus } from "@keeper.sh/data-schemas";
 import { generateEventUid, isKeeperEvent } from "./event-identity";
@@ -28,7 +29,7 @@ export abstract class CalendarProvider<
 
   abstract pushEvents(events: SyncableEvent[]): Promise<PushResult[]>;
   abstract deleteEvents(eventIds: string[]): Promise<DeleteResult[]>;
-  abstract listRemoteEvents(): Promise<RemoteEvent[]>;
+  abstract listRemoteEvents(options: ListRemoteEventsOptions): Promise<RemoteEvent[]>;
 
   async sync(
     localEvents: SyncableEvent[],
@@ -60,7 +61,18 @@ export abstract class CalendarProvider<
       return { added: 0, removed: 0 };
     }
 
-    const remoteEvents = await this.listRemoteEvents();
+    const maxEndTime = localEvents.reduce<Date | undefined>(
+      (max, event) => (!max || event.endTime > max ? event.endTime : max),
+      undefined,
+    );
+
+    if (!maxEndTime) {
+      this.childLog.debug({ userId }, "no local events to sync");
+      await this.persistAndEmitFinalStatus(0, 0);
+      return { added: 0, removed: 0 };
+    }
+
+    const remoteEvents = await this.listRemoteEvents({ until: maxEndTime });
 
     if (!isLatestSync) {
       this.childLog.debug({ userId }, "sync superseded after fetch");

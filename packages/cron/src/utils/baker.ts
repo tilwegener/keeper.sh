@@ -3,6 +3,6 @@ import { Baker } from "cronbake";
 
 export const baker = Baker.create({
   onError(error, jobName) {
-    log.error(error, "error in job '%s'", jobName);
+    log.error({ error, jobName }, "error in job");
   },
 });

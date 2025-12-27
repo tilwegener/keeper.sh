@@ -1,4 +1,5 @@
 import { createSourceSchema } from "@keeper.sh/data-schemas";
+import { log } from "@keeper.sh/log";
 import { withTracing, withAuth } from "../../../utils/middleware";
 import {
   getUserSources,
@@ -18,15 +19,9 @@ export const POST = withTracing(
   withAuth(async ({ request, userId }) => {
     const body = await request.json();
 
-    if (!createSourceSchema.allows(body)) {
-      return Response.json(
-        { error: "Name and URL are required" },
-        { status: 400 },
-      );
-    }
-
     try {
-      const source = await createSource(userId, body.name, body.url);
+      const { name, url } = createSourceSchema.assert(body);
+      const source = await createSource(userId, name, url);
       return Response.json(source, { status: 201 });
     } catch (error) {
       if (error instanceof SourceLimitError) {
@@ -35,7 +30,12 @@ export const POST = withTracing(
       if (error instanceof InvalidSourceUrlError) {
         return Response.json({ error: error.message }, { status: 400 });
       }
-      throw error;
+
+      log.error({ error }, "error parsing source body");
+      return Response.json(
+        { error: "Name and URL are required" },
+        { status: 400 },
+      );
     }
   }),
 );

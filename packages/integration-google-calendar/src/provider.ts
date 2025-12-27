@@ -7,6 +7,7 @@ import {
   type SyncResult,
   type GoogleCalendarConfig,
   type SyncContext,
+  type ListRemoteEventsOptions,
 } from "@keeper.sh/integrations";
 import {
   googleEventSchema,
@@ -15,7 +16,10 @@ import {
   type GoogleEvent,
 } from "@keeper.sh/data-schemas";
 import { database } from "@keeper.sh/database";
-import { calendarDestinationsTable } from "@keeper.sh/database/schema";
+import {
+  oauthCredentialsTable,
+  calendarDestinationsTable,
+} from "@keeper.sh/database/schema";
 import { eq } from "drizzle-orm";
 import { refreshAccessToken } from "@keeper.sh/oauth-google";
 import { getGoogleAccountsForUser, getUserEvents } from "./sync";
@@ -23,6 +27,8 @@ import { getGoogleAccountsForUser, getUserEvents } from "./sync";
 const GOOGLE_CALENDAR_API = "https://www.googleapis.com/calendar/v3/";
 const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000;
 const RATE_LIMIT_DELAY_MS = 60_000;
+const MAX_REQUESTS_PER_MINUTE = 600;
+const REQUESTS_PER_SECOND = Math.floor(MAX_REQUESTS_PER_MINUTE / 60);
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -97,14 +103,23 @@ export class GoogleCalendarProvider extends CalendarProvider<GoogleCalendarConfi
     const newExpiresAt = new Date(Date.now() + tokenData.expires_in * 1000);
 
     this.childLog.debug({ accountId }, "updating database with new token");
-    await database
-      .update(calendarDestinationsTable)
-      .set({
-        accessToken: tokenData.access_token,
-        accessTokenExpiresAt: newExpiresAt,
-        updatedAt: new Date(),
+    const [destination] = await database
+      .select({
+        oauthCredentialId: calendarDestinationsTable.oauthCredentialId,
       })
-      .where(eq(calendarDestinationsTable.accountId, accountId));
+      .from(calendarDestinationsTable)
+      .where(eq(calendarDestinationsTable.accountId, accountId))
+      .limit(1);
+
+    if (destination?.oauthCredentialId) {
+      await database
+        .update(oauthCredentialsTable)
+        .set({
+          accessToken: tokenData.access_token,
+          expiresAt: newExpiresAt,
+        })
+        .where(eq(oauthCredentialsTable.id, destination.oauthCredentialId));
+    }
 
     this.currentAccessToken = tokenData.access_token;
     this.config.accessTokenExpiresAt = newExpiresAt;
@@ -166,9 +181,10 @@ export class GoogleCalendarProvider extends CalendarProvider<GoogleCalendarConfi
     return results;
   }
 
-  async listRemoteEvents(): Promise<RemoteEvent[]> {
+  async listRemoteEvents(options: ListRemoteEventsOptions): Promise<RemoteEvent[]> {
     await this.ensureValidToken();
     const remoteEvents: RemoteEvent[] = [];
+
     let pageToken: string | undefined;
 
     const today = new Date();
@@ -182,6 +198,7 @@ export class GoogleCalendarProvider extends CalendarProvider<GoogleCalendarConfi
 
       url.searchParams.set("maxResults", "2500");
       url.searchParams.set("timeMin", today.toISOString());
+      url.searchParams.set("timeMax", options.until.toISOString());
       if (pageToken) {
         url.searchParams.set("pageToken", pageToken);
       }
@@ -230,11 +247,8 @@ export class GoogleCalendarProvider extends CalendarProvider<GoogleCalendarConfi
       this.childLog.debug({ uid }, "creating event");
       return this.createEvent(resource);
     } catch (error) {
-      this.childLog.error({ uid, error }, "failed to push event");
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-      };
+      this.childLog.error({ error, uid }, "failed to push event");
+      return { success: false, error: "Failed to push event" };
     }
   }
 
@@ -304,11 +318,8 @@ export class GoogleCalendarProvider extends CalendarProvider<GoogleCalendarConfi
       this.childLog.debug({ uid, eventId: existing.id }, "event deleted");
       return { success: true };
     } catch (error) {
-      this.childLog.error({ uid, error }, "failed to delete event");
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-      };
+      this.childLog.error({ error, uid }, "failed to delete event");
+      return { success: false, error: "Failed to delete event" };
     }
   }
 

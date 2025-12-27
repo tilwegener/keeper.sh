@@ -1,20 +1,20 @@
 import type { SyncResult } from "./types";
 import { log } from "@keeper.sh/log";
-import { startSync, endSync, isSyncCurrent, type SyncContext } from "./sync-coordinator";
+import {
+  startSync,
+  endSync,
+  isSyncCurrent,
+  type SyncContext,
+} from "./sync-coordinator";
 
 export interface DestinationProvider {
   syncForUser(userId: string, context: SyncContext): Promise<SyncResult | null>;
 }
 
-const providers: DestinationProvider[] = [];
-
-export function registerDestinationProvider(
-  provider: DestinationProvider,
-): void {
-  providers.push(provider);
-}
-
-export async function syncDestinationsForUser(userId: string): Promise<void> {
+export async function syncDestinationsForUser(
+  userId: string,
+  providers: DestinationProvider[],
+): Promise<void> {
   const context = await startSync(userId);
 
   try {
@@ -26,7 +26,11 @@ export async function syncDestinationsForUser(userId: string): Promise<void> {
 
     for (const result of results) {
       if (result.status === "rejected" && isCurrent) {
-        log.error(result.reason, "destination sync failed for user '%s'", userId);
+        log.error(
+          { error: result.reason },
+          "destination sync failed for user '%s'",
+          userId,
+        );
       }
     }
   } finally {

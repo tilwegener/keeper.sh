@@ -7,6 +7,11 @@ import Link from "next/link";
 import { Button } from "@base-ui/react/button";
 import { Menu } from "@base-ui/react/menu";
 import { FREE_DESTINATION_LIMIT } from "@keeper.sh/premium/constants";
+import {
+  DESTINATIONS,
+  isCalDAVDestination,
+  type DestinationConfig,
+} from "@keeper.sh/destinations";
 import { Card } from "@/components/card";
 import { EmptyState } from "@/components/empty-state";
 import { GhostButton } from "@/components/ghost-button";
@@ -18,6 +23,7 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 import { IconBox } from "@/components/icon-box";
 import { Section } from "@/components/section";
 import { SectionHeader } from "@/components/section-header";
+import { CalDAVConnectDialog } from "@/components/integrations/caldav-connect-dialog";
 import { useConfirmAction } from "@/hooks/use-confirm-action";
 import { useLinkedAccounts } from "@/hooks/use-linked-accounts";
 import { useSubscription } from "@/hooks/use-subscription";
@@ -26,49 +32,13 @@ import { TextLabel, TextMeta, TextMuted, BannerText } from "@/components/typogra
 import { button } from "@/styles";
 import { Server, Plus } from "lucide-react";
 
-type SupportedProvider = "google";
+type CalDAVProvider = "fastmail" | "icloud" | "caldav";
 
-interface BaseDestination {
-  id: string;
-  name: string;
-  icon?: string;
-  pushesEvents?: boolean;
-}
+const isCalDAVProvider = (provider: string): provider is CalDAVProvider =>
+  isCalDAVDestination(provider);
 
-interface ConnectableDestination extends BaseDestination {
-  providerId: SupportedProvider;
-  comingSoon?: false;
-}
-
-interface ComingSoonDestination extends BaseDestination {
-  providerId?: never;
-  comingSoon: true;
-}
-
-type Destination = ConnectableDestination | ComingSoonDestination;
-
-const DESTINATIONS: Destination[] = [
-  {
-    id: "google",
-    providerId: "google",
-    name: "Google Calendar",
-    icon: "/integrations/icon-google.svg",
-    pushesEvents: true,
-  },
-  {
-    id: "outlook",
-    name: "Outlook",
-    icon: "/integrations/icon-outlook.svg",
-    comingSoon: true,
-    pushesEvents: true,
-  },
-  {
-    id: "caldav",
-    name: "CalDAV",
-    comingSoon: true,
-    pushesEvents: true,
-  },
-];
+const isConnectable = (destination: DestinationConfig): boolean =>
+  !destination.comingSoon;
 
 interface DestinationActionProps {
   comingSoon?: boolean;
@@ -177,7 +147,7 @@ const SyncStatusText = ({ syncStatus }: SyncStatusTextProps) => {
 };
 
 interface DestinationItemProps {
-  destination: Destination;
+  destination: DestinationConfig & { name: string };
   syncStatus?: SyncStatusDisplayProps;
   isConnected: boolean;
   isLoading: boolean;
@@ -232,23 +202,15 @@ const DestinationItem = ({
         open={isOpen}
         onOpenChange={setIsOpen}
         title={`Disconnect ${destination.name}`}
-        description={
-          destination.pushesEvents
-            ? `Synced events will remain on ${destination.name}. Remove sources first to clear them.`
-            : `Events will no longer sync to ${destination.name}.`
-        }
+        description={`Synced events will remain on ${destination.name}. Remove sources first to clear them.`}
         confirmLabel="Disconnect"
         isConfirming={isConfirming}
         onConfirm={() => confirm(onDisconnect)}
-        requirePhrase={destination.pushesEvents ? "I understand" : undefined}
+        requirePhrase="I understand"
       />
     </>
   );
 };
-
-const isConnectable = (
-  destination: Destination,
-): destination is ConnectableDestination => !destination.comingSoon;
 
 const UpgradeBanner = () => (
   <div className="flex items-center justify-between p-1 pl-3.5 bg-warning-surface border border-warning-border rounded-lg">
@@ -269,6 +231,8 @@ export const DestinationsSection = () => {
   const searchParams = useSearchParams();
   const toastManager = Toast.useToastManager();
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [caldavDialogOpen, setCaldavDialogOpen] = useState(false);
+  const [caldavProvider, setCaldavProvider] = useState<CalDAVProvider | null>(null);
   const {
     data: accounts,
     isLoading: isAccountsLoading,
@@ -295,11 +259,10 @@ export const DestinationsSection = () => {
 
   const getDestinationConfig = (
     providerId: string,
-  ): ConnectableDestination | undefined => {
-    const destination = DESTINATIONS.find(
-      (dest) => isConnectable(dest) && dest.providerId === providerId,
+  ): DestinationConfig | undefined => {
+    return DESTINATIONS.find(
+      (destination) => isConnectable(destination) && destination.id === providerId,
     );
-    return destination && isConnectable(destination) ? destination : undefined;
   };
 
   const getSyncStatus = (
@@ -318,11 +281,22 @@ export const DestinationsSection = () => {
     };
   };
 
-  const handleConnect = (providerId: SupportedProvider) => {
+  const handleConnect = (providerId: string) => {
+    if (isCalDAVProvider(providerId)) {
+      setCaldavProvider(providerId);
+      setCaldavDialogOpen(true);
+      return;
+    }
+
     setLoadingId(providerId);
     const url = new URL("/api/destinations/authorize", window.location.origin);
     url.searchParams.set("provider", providerId);
     window.location.href = url.toString();
+  };
+
+  const handleCaldavSuccess = async () => {
+    await mutateAccounts();
+    toastManager.add({ title: "Calendar connected successfully" });
   };
 
   const handleDisconnect = async (
@@ -356,7 +330,7 @@ export const DestinationsSection = () => {
     return (
       <MenuItem
         key={destination.id}
-        onClick={() => connectable && handleConnect(destination.providerId)}
+        onClick={() => connectable && handleConnect(destination.id)}
         disabled={destination.comingSoon}
         variant={destination.comingSoon ? "disabled" : "default"}
         className="py-1.5"
@@ -447,7 +421,7 @@ export const DestinationsSection = () => {
                 }}
                 isConnected={true}
                 isLoading={loadingId === account.id}
-                onConnect={() => handleConnect(config.providerId)}
+                onConnect={() => handleConnect(config.id)}
                 onDisconnect={() => handleDisconnect(account.id, config.name)}
                 syncStatus={getSyncStatus(account.id)}
               />
@@ -466,6 +440,14 @@ export const DestinationsSection = () => {
       />
       {isAtLimit && <UpgradeBanner />}
       {renderContent()}
+      {caldavProvider && (
+        <CalDAVConnectDialog
+          open={caldavDialogOpen}
+          onOpenChange={setCaldavDialogOpen}
+          provider={caldavProvider}
+          onSuccess={handleCaldavSuccess}
+        />
+      )}
     </Section>
   );
 };

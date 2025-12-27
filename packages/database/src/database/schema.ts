@@ -51,7 +51,26 @@ export const userSubscriptionsTable = pgTable("user_subscriptions", {
     .references(() => user.id, { onDelete: "cascade" }),
   plan: text().notNull().default("free"),
   polarSubscriptionId: text(),
-  updatedAt: timestamp().notNull().defaultNow(),
+  updatedAt: timestamp().notNull().defaultNow().$onUpdate(() => new Date()),
+});
+
+export const oauthCredentialsTable = pgTable("oauth_credentials", {
+  id: uuid().notNull().primaryKey().defaultRandom(),
+  accessToken: text().notNull(),
+  refreshToken: text().notNull(),
+  expiresAt: timestamp().notNull(),
+  createdAt: timestamp().notNull().defaultNow(),
+  updatedAt: timestamp().notNull().defaultNow().$onUpdate(() => new Date()),
+});
+
+export const caldavCredentialsTable = pgTable("caldav_credentials", {
+  id: uuid().notNull().primaryKey().defaultRandom(),
+  serverUrl: text().notNull(),
+  calendarUrl: text().notNull(),
+  username: text().notNull(),
+  encryptedPassword: text().notNull(),
+  createdAt: timestamp().notNull().defaultNow(),
+  updatedAt: timestamp().notNull().defaultNow().$onUpdate(() => new Date()),
 });
 
 export const calendarDestinationsTable = pgTable(
@@ -64,11 +83,14 @@ export const calendarDestinationsTable = pgTable(
     provider: text().notNull(),
     accountId: text().notNull(),
     email: text(),
-    accessToken: text().notNull(),
-    refreshToken: text().notNull(),
-    accessTokenExpiresAt: timestamp().notNull(),
+    oauthCredentialId: uuid().references(() => oauthCredentialsTable.id, {
+      onDelete: "cascade",
+    }),
+    caldavCredentialId: uuid().references(() => caldavCredentialsTable.id, {
+      onDelete: "cascade",
+    }),
     createdAt: timestamp().notNull().defaultNow(),
-    updatedAt: timestamp().notNull().defaultNow(),
+    updatedAt: timestamp().notNull().defaultNow().$onUpdate(() => new Date()),
   },
   (table) => [
     uniqueIndex("calendar_destinations_provider_account_idx").on(
@@ -88,10 +110,9 @@ export const syncStatusTable = pgTable(
     localEventCount: integer().notNull().default(0),
     remoteEventCount: integer().notNull().default(0),
     lastSyncedAt: timestamp(),
-    updatedAt: timestamp().notNull().defaultNow(),
+    updatedAt: timestamp().notNull().defaultNow().$onUpdate(() => new Date()),
   },
   (table) => [
     uniqueIndex("sync_status_destination_idx").on(table.destinationId),
   ],
 );
-

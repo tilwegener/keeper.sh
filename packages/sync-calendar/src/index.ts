@@ -10,6 +10,16 @@ import { convertIcsCalendar } from "ts-ics";
 import { log } from "@keeper.sh/log";
 import { eq, inArray, desc } from "drizzle-orm";
 
+export class RemoteCalendarSyncError extends Error {
+  constructor(
+    public sourceId: string,
+    cause: unknown,
+  ) {
+    super(`Failed to sync remote calendar ${sourceId}`);
+    this.cause = cause;
+  }
+}
+
 export type Source = typeof remoteICalSourcesTable.$inferSelect;
 
 const getLatestSnapshot = async (sourceId: string) => {
@@ -102,7 +112,8 @@ export async function fetchAndSyncSource(source: Source) {
     await syncSourceFromSnapshot(source);
     log.trace("fetchAndSyncSource for source '%s' complete", source.id);
   } catch (error) {
-    log.error(error, "failed to fetch and sync source '%s'", source.id);
-    throw error;
+    const syncError = new RemoteCalendarSyncError(source.id, error);
+    log.error({ error: syncError, sourceId: source.id }, "failed to fetch and sync source");
+    throw syncError;
   }
 }

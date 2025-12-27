@@ -5,6 +5,16 @@ import { userSubscriptionsTable } from "@keeper.sh/database/schema";
 import { user } from "@keeper.sh/database/auth-schema";
 import { log } from "@keeper.sh/log";
 
+class SubscriptionReconcileError extends Error {
+  constructor(
+    public userId: string,
+    cause: unknown,
+  ) {
+    super(`Failed to reconcile subscription for user ${userId}`);
+    this.cause = cause;
+  }
+}
+
 async function reconcileUserSubscription(userId: string) {
   if (!polarClient) return;
 
@@ -26,20 +36,22 @@ async function reconcileUserSubscription(userId: string) {
         userId,
         plan,
         polarSubscriptionId,
-        updatedAt: new Date(),
       })
       .onConflictDoUpdate({
         target: userSubscriptionsTable.userId,
         set: {
           plan,
           polarSubscriptionId,
-          updatedAt: new Date(),
         },
       });
 
     log.debug("reconciled user '%s' to plan '%s'", userId, plan);
   } catch (error) {
-    log.error(error, "failed to reconcile subscription for user '%s'", userId);
+    const reconcileError = new SubscriptionReconcileError(userId, error);
+    log.error(
+      { error: reconcileError, userId },
+      "failed to reconcile subscription",
+    );
   }
 }
 
@@ -59,6 +71,7 @@ export default {
     const reconciliations = users.map((user) =>
       reconcileUserSubscription(user.id),
     );
+
     await Promise.allSettled(reconciliations);
 
     log.info("subscription reconciliation complete");

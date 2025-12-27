@@ -28,10 +28,15 @@ export function useSyncStatus() {
     let socket: WebSocket | null = null;
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
     let statuses: SyncStatusRecord = {};
+    let isClosing = false;
 
     const connect = async () => {
+      if (isClosing) return;
+
       try {
         const token = await fetchSocketToken();
+        if (isClosing) return;
+
         socket = new WebSocket(createSocketUrl(baseUrl, token));
 
         socket.onmessage = (messageEvent) => {
@@ -59,6 +64,7 @@ export function useSyncStatus() {
         };
 
         socket.onclose = () => {
+          if (isClosing) return;
           reconnectTimer = setTimeout(connect, 3000);
         };
 
@@ -66,6 +72,7 @@ export function useSyncStatus() {
           next(new Error("WebSocket error"));
         };
       } catch {
+        if (isClosing) return;
         reconnectTimer = setTimeout(connect, 3000);
       }
     };
@@ -73,6 +80,7 @@ export function useSyncStatus() {
     connect();
 
     return () => {
+      isClosing = true;
       if (reconnectTimer) clearTimeout(reconnectTimer);
       socket?.close();
     };

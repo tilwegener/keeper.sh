@@ -131,7 +131,7 @@ export const AuthFormDivider: FC = () => (
 );
 
 const authSocialButton = tv({
-  base: "w-full py-1.5 px-3 flex items-center justify-center gap-2 border border-border rounded-md text-sm font-medium bg-surface cursor-pointer transition-colors duration-150 hover:bg-surface-subtle disabled:opacity-50 disabled:cursor-not-allowed",
+  base: "w-full py-1.5 px-3 flex items-center justify-center gap-2 border border-border rounded-md text-sm font-medium bg-surface cursor-pointer transition-colors duration-150 hover:bg-surface-subtle disabled:opacity-50 disabled:cursor-not-allowed text-foreground",
 });
 
 interface AuthSocialButtonProps {

@@ -4,8 +4,9 @@ import {
   eventStatesTable,
   userSubscriptionsTable,
   calendarDestinationsTable,
+  oauthCredentialsTable,
 } from "@keeper.sh/database/schema";
-import { and, asc, eq, gte } from "drizzle-orm";
+import { and, asc, eq, gte, isNotNull } from "drizzle-orm";
 import type { Plan } from "@keeper.sh/premium";
 import type { SyncableEvent } from "@keeper.sh/integrations";
 
@@ -26,12 +27,16 @@ export const getGoogleAccountsByPlan = async (
       destinationId: calendarDestinationsTable.id,
       userId: calendarDestinationsTable.userId,
       accountId: calendarDestinationsTable.accountId,
-      accessToken: calendarDestinationsTable.accessToken,
-      refreshToken: calendarDestinationsTable.refreshToken,
-      accessTokenExpiresAt: calendarDestinationsTable.accessTokenExpiresAt,
+      accessToken: oauthCredentialsTable.accessToken,
+      refreshToken: oauthCredentialsTable.refreshToken,
+      accessTokenExpiresAt: oauthCredentialsTable.expiresAt,
       plan: userSubscriptionsTable.plan,
     })
     .from(calendarDestinationsTable)
+    .innerJoin(
+      oauthCredentialsTable,
+      eq(calendarDestinationsTable.oauthCredentialId, oauthCredentialsTable.id),
+    )
     .leftJoin(
       userSubscriptionsTable,
       eq(calendarDestinationsTable.userId, userSubscriptionsTable.userId),
@@ -41,7 +46,7 @@ export const getGoogleAccountsByPlan = async (
   const accounts: GoogleAccount[] = [];
 
   for (const result of results) {
-    const { plan, accessToken, refreshToken, accessTokenExpiresAt } = result;
+    const { plan, accessToken, refreshToken, accessTokenExpiresAt, accountId } = result;
     const userPlan = plan ?? "free";
 
     if (userPlan !== targetPlan) {
@@ -51,7 +56,7 @@ export const getGoogleAccountsByPlan = async (
     accounts.push({
       destinationId: result.destinationId,
       userId: result.userId,
-      accountId: result.accountId,
+      accountId,
       accessToken,
       refreshToken,
       accessTokenExpiresAt,
@@ -69,11 +74,15 @@ export const getGoogleAccountsForUser = async (
       destinationId: calendarDestinationsTable.id,
       userId: calendarDestinationsTable.userId,
       accountId: calendarDestinationsTable.accountId,
-      accessToken: calendarDestinationsTable.accessToken,
-      refreshToken: calendarDestinationsTable.refreshToken,
-      accessTokenExpiresAt: calendarDestinationsTable.accessTokenExpiresAt,
+      accessToken: oauthCredentialsTable.accessToken,
+      refreshToken: oauthCredentialsTable.refreshToken,
+      accessTokenExpiresAt: oauthCredentialsTable.expiresAt,
     })
     .from(calendarDestinationsTable)
+    .innerJoin(
+      oauthCredentialsTable,
+      eq(calendarDestinationsTable.oauthCredentialId, oauthCredentialsTable.id),
+    )
     .where(
       and(
         eq(calendarDestinationsTable.provider, "google"),

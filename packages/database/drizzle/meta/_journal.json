@@ -162,6 +162,13 @@
       "when": 1766733236361,
       "tag": "0022_lazy_avengers",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1766748640212,
+      "tag": "0023_lyrical_genesis",
+      "breakpoints": true
     }
   ]
 }

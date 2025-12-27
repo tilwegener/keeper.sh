@@ -3,7 +3,8 @@
   "ui": "tui",
   "tasks": {
     "dev": {
-      "cache": false
+      "cache": false,
+      "passThroughEnv": ["LOG_LEVEL"]
     },
     "types": {
       "dependsOn": ["^types"]

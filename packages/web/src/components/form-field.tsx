@@ -9,7 +9,7 @@ interface FormFieldProps {
   type: "text" | "password" | "email" | "url";
   value?: string;
   defaultValue?: string;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
   required?: boolean;
   autoComplete?: string;

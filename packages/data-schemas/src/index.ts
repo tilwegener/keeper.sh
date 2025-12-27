@@ -109,3 +109,19 @@ export const signUpBodySchema = type({
   "password?": "string",
 });
 export type SignUpBody = typeof signUpBodySchema.infer;
+
+export const caldavDiscoverRequestSchema = type({
+  serverUrl: "string",
+  username: "string",
+  password: "string",
+});
+export type CalDAVDiscoverRequest = typeof caldavDiscoverRequestSchema.infer;
+
+export const caldavConnectRequestSchema = type({
+  serverUrl: "string",
+  username: "string",
+  password: "string",
+  calendarUrl: "string",
+  "provider?": "string",
+});
+export type CalDAVConnectRequest = typeof caldavConnectRequestSchema.infer;

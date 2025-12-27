@@ -1,9 +1,4 @@
-import { registerDestinationProvider } from "@keeper.sh/integrations";
-import { GoogleCalendarProvider } from "./provider";
-
-registerDestinationProvider(GoogleCalendarProvider);
-
-export { GoogleCalendarProvider };
+export { GoogleCalendarProvider } from "./provider";
 export {
   getGoogleAccountsByPlan,
   getGoogleAccountsForUser,

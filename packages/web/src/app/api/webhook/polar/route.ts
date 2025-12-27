@@ -18,14 +18,12 @@ const upsertSubscription = async (
       userId,
       plan,
       polarSubscriptionId,
-      updatedAt: new Date(),
     })
     .onConflictDoUpdate({
       target: userSubscriptionsTable.userId,
       set: {
         plan,
         polarSubscriptionId,
-        updatedAt: new Date(),
       },
     });
   log.trace("upsertSubscription for user '%s' complete", userId);

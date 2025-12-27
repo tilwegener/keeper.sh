@@ -20,7 +20,7 @@
     "@keeper.sh/auth": "workspace:*",
     "@keeper.sh/calendar": "workspace:*",
     "@keeper.sh/database": "workspace:*",
-    "@keeper.sh/integration-google-calendar": "workspace:*",
+    "@keeper.sh/destination-providers": "workspace:*",
     "@keeper.sh/integrations": "workspace:*",
     "@keeper.sh/log": "workspace:*",
     "@keeper.sh/premium": "workspace:*",

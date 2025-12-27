@@ -8,6 +8,16 @@ import { pullRemoteCalendar } from "@keeper.sh/calendar";
 import { log } from "@keeper.sh/log";
 import { and, eq, lte } from "drizzle-orm";
 
+class CalendarFetchError extends Error {
+  constructor(
+    public sourceId: string,
+    cause: unknown,
+  ) {
+    super(`Failed to fetch remote calendar ${sourceId}`);
+    this.cause = cause;
+  }
+}
+
 type FetchResult = {
   ical: string;
   sourceId: string;
@@ -24,8 +34,9 @@ const fetchRemoteCalendar = async (
     log.debug("fetched remote calendar '%s'", sourceId);
     return { ical, sourceId };
   } catch (error) {
-    log.error(error, "could not fetch remote calendar '%s'", sourceId);
-    throw error;
+    const fetchError = new CalendarFetchError(sourceId, error);
+    log.error({ error: fetchError, sourceId }, "could not fetch remote calendar");
+    throw fetchError;
   }
 };
 

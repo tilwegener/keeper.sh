@@ -40,6 +40,10 @@ export interface SlotOperations {
   operations: SyncOperation[];
 }
 
+export interface ListRemoteEventsOptions {
+  until: Date;
+}
+
 export interface ProviderConfig {
   userId: string;
   destinationId: string;
@@ -51,4 +55,10 @@ export interface GoogleCalendarConfig extends ProviderConfig {
   refreshToken: string;
   accessTokenExpiresAt: Date;
   calendarId: string;
+}
+
+export interface CalDAVConfig extends ProviderConfig {
+  serverUrl: string;
+  username: string;
+  calendarUrl: string;
 }

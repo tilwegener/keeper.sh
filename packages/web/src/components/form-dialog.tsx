@@ -16,7 +16,7 @@ interface FormDialogProps {
   isSubmitting: boolean;
   submitLabel: string;
   submitVariant: "primary" | "danger";
-  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   trigger?: React.ReactElement;
 }
 
@@ -51,7 +51,9 @@ export const FormDialog: FC<PropsWithChildren<FormDialogProps>> = ({
             </DangerText>
           )}
           <div className="flex gap-2 justify-end">
-            <Dialog.Close className={button({ variant: "secondary", size: "sm" })}>
+            <Dialog.Close
+              className={button({ variant: "secondary", size: "sm" })}
+            >
               Cancel
             </Dialog.Close>
             <Button
