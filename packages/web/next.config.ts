@@ -1,7 +1,6 @@
 import type { NextConfig } from "next";
 
 export default {
-  output: "standalone",
   transpilePackages: [
     "@keeper.sh/auth",
     "@keeper.sh/database",
