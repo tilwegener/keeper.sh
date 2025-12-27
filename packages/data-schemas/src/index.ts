@@ -62,6 +62,45 @@ export const googleUserInfoSchema = type({
 });
 export type GoogleUserInfo = typeof googleUserInfoSchema.infer;
 
+export const microsoftTokenResponseSchema = type({
+  access_token: "string",
+  token_type: "string",
+  expires_in: "number",
+  "refresh_token?": "string",
+  scope: "string",
+});
+export type MicrosoftTokenResponse = typeof microsoftTokenResponseSchema.infer;
+
+export const microsoftUserInfoSchema = type({
+  id: "string",
+  "mail?": "string",
+  "userPrincipalName?": "string",
+  "displayName?": "string",
+});
+export type MicrosoftUserInfo = typeof microsoftUserInfoSchema.infer;
+
+export const outlookEventSchema = type({
+  "id?": "string",
+  "iCalUId?": "string",
+  "subject?": "string",
+  "body?": { "contentType?": "string", "content?": "string" },
+  "start?": { "dateTime?": "string", "timeZone?": "string" },
+  "end?": { "dateTime?": "string", "timeZone?": "string" },
+  "categories?": "string[]",
+});
+export type OutlookEvent = typeof outlookEventSchema.infer;
+
+export const outlookEventListSchema = type({
+  "value?": outlookEventSchema.array(),
+  "@odata.nextLink?": "string",
+});
+export type OutlookEventList = typeof outlookEventListSchema.infer;
+
+export const microsoftApiErrorSchema = type({
+  "error?": { "code?": "string", "message?": "string" },
+});
+export type MicrosoftApiError = typeof microsoftApiErrorSchema.infer;
+
 export const socketMessageSchema = type({
   event: "string",
   "data?": "unknown",

@@ -14,6 +14,12 @@ export const DESTINATIONS: DestinationConfig[] = [
     type: "oauth",
   },
   {
+    id: "outlook",
+    name: "Outlook",
+    icon: "/integrations/icon-outlook.svg",
+    type: "oauth",
+  },
+  {
     id: "fastmail",
     name: "FastMail",
     icon: "/integrations/icon-fastmail.svg",
@@ -29,13 +35,6 @@ export const DESTINATIONS: DestinationConfig[] = [
     id: "caldav",
     name: "CalDAV",
     type: "caldav",
-  },
-  {
-    id: "outlook",
-    name: "Outlook",
-    icon: "/integrations/icon-outlook.svg",
-    type: "oauth",
-    comingSoon: true,
   },
 ];
 

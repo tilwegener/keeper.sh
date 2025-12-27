@@ -14,6 +14,7 @@ export type {
   RemoteEvent,
   ProviderConfig,
   GoogleCalendarConfig,
+  OutlookCalendarConfig,
   CalDAVConfig,
   ListRemoteEventsOptions,
 } from "./types";

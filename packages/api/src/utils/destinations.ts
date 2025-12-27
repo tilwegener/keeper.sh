@@ -5,13 +5,50 @@ import {
   caldavCredentialsTable,
 } from "@keeper.sh/database/schema";
 import { eq, and } from "drizzle-orm";
+import {
+  getOAuthProvider,
+  isOAuthProvider,
+  validateOAuthState,
+  type AuthorizationUrlOptions,
+} from "@keeper.sh/destination-providers";
 
-export {
-  getAuthorizationUrl,
-  exchangeCodeForTokens,
-  fetchUserInfo,
-  validateState,
-} from "@keeper.sh/oauth-google";
+export { isOAuthProvider };
+
+export const getAuthorizationUrl = (
+  provider: string,
+  userId: string,
+  options: AuthorizationUrlOptions,
+): string => {
+  const oauthProvider = getOAuthProvider(provider);
+  if (!oauthProvider) {
+    throw new Error(`OAuth provider not found: ${provider}`);
+  }
+  return oauthProvider.getAuthorizationUrl(userId, options);
+};
+
+export const exchangeCodeForTokens = async (
+  provider: string,
+  code: string,
+  callbackUrl: string,
+) => {
+  const oauthProvider = getOAuthProvider(provider);
+  if (!oauthProvider) {
+    throw new Error(`OAuth provider not found: ${provider}`);
+  }
+  return oauthProvider.exchangeCodeForTokens(code, callbackUrl);
+};
+
+export const fetchUserInfo = async (provider: string, accessToken: string) => {
+  const oauthProvider = getOAuthProvider(provider);
+  if (!oauthProvider) {
+    throw new Error(`OAuth provider not found: ${provider}`);
+  }
+  return oauthProvider.fetchUserInfo(accessToken);
+};
+
+export const validateState = (state: string): string | null => {
+  return validateOAuthState(state);
+};
 
 interface CalendarDestination {
   id: string;

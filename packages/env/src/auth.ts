@@ -9,6 +9,8 @@ export default arkenv({
   POLAR_MODE: "'sandbox' | 'production' | undefined",
   GOOGLE_CLIENT_ID: "string?",
   GOOGLE_CLIENT_SECRET: "string?",
+  MICROSOFT_CLIENT_ID: "string?",
+  MICROSOFT_CLIENT_SECRET: "string?",
   RESEND_API_KEY: "string?",
   PASSKEY_RP_ID: "string?",
   PASSKEY_RP_NAME: "string?",

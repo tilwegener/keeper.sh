@@ -86,7 +86,7 @@ export const SubscriptionPlans: FC<SubscriptionPlansProps> = ({
         onChange={setBillingPeriodOverride}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-3xl">
         {plans.map((plan) => {
           const productId = isYearly
             ? plan.yearlyProductId

@@ -89,14 +89,14 @@ export const handleOAuthCallback = async (
     `/api/destinations/callback/${params.provider}`,
     env.BETTER_AUTH_URL,
   );
-  const tokens = await exchangeCodeForTokens(params.code, callbackUrl.toString());
+  const tokens = await exchangeCodeForTokens(params.provider, params.code, callbackUrl.toString());
 
   if (!tokens.refresh_token) {
     log.error("No refresh token in response");
     throw new OAuthError("No refresh token", errorUrl);
   }
 
-  const userInfo = await fetchUserInfo(tokens.access_token);
+  const userInfo = await fetchUserInfo(params.provider, tokens.access_token);
   const expiresAt = new Date(Date.now() + tokens.expires_in * 1000);
 
   await saveCalendarDestination(

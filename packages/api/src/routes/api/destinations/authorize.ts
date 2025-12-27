@@ -4,14 +4,14 @@ import { canAddDestination } from "@keeper.sh/premium";
 import env from "@keeper.sh/env/auth";
 import { eq } from "drizzle-orm";
 import { withTracing, withAuth } from "../../../utils/middleware";
-import { getAuthorizationUrl } from "../../../utils/destinations";
+import { getAuthorizationUrl, isOAuthProvider } from "../../../utils/destinations";
 
 export const GET = withTracing(
   withAuth(async ({ request, userId }) => {
     const url = new URL(request.url);
     const provider = url.searchParams.get("provider");
 
-    if (provider !== "google") {
+    if (!provider || !isOAuthProvider(provider)) {
       return Response.json({ error: "Unsupported provider" }, { status: 400 });
     }
 
@@ -35,7 +35,7 @@ export const GET = withTracing(
       `/api/destinations/callback/${provider}`,
       env.BETTER_AUTH_URL,
     );
-    const authUrl = getAuthorizationUrl(userId, {
+    const authUrl = getAuthorizationUrl(provider, userId, {
       callbackUrl: callbackUrl.toString(),
     });
 

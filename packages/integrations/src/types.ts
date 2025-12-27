@@ -57,6 +57,13 @@ export interface GoogleCalendarConfig extends ProviderConfig {
   calendarId: string;
 }
 
+export interface OutlookCalendarConfig extends ProviderConfig {
+  accountId: string;
+  accessToken: string;
+  refreshToken: string;
+  accessTokenExpiresAt: Date;
+}
+
 export interface CalDAVConfig extends ProviderConfig {
   serverUrl: string;
   username: string;
