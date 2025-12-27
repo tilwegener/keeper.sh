@@ -154,7 +154,7 @@
     "packages/destination-providers": {
       "name": "@keeper.sh/destination-providers",
       "dependencies": {
-        "@keeper.sh/destinations": "workspace:*",
+        "@keeper.sh/destinations-metadata": "workspace:*",
         "@keeper.sh/integration-caldav": "workspace:*",
         "@keeper.sh/integration-fastmail": "workspace:*",
         "@keeper.sh/integration-google-calendar": "workspace:*",
@@ -167,8 +167,8 @@
         "typescript": "5.9.3",
       },
     },
-    "packages/destinations": {
-      "name": "@keeper.sh/destinations",
+    "packages/destinations-metadata": {
+      "name": "@keeper.sh/destinations-metadata",
       "devDependencies": {
         "@keeper.sh/typescript-config": "workspace:*",
         "@types/bun": "latest",
@@ -379,7 +379,7 @@
         "@keeper.sh/data-schemas": "workspace:*",
         "@keeper.sh/database": "workspace:*",
         "@keeper.sh/destination-providers": "workspace:*",
-        "@keeper.sh/destinations": "workspace:*",
+        "@keeper.sh/destinations-metadata": "workspace:*",
         "@keeper.sh/env": "workspace:*",
         "@keeper.sh/log": "workspace:*",
         "@keeper.sh/premium": "workspace:*",
@@ -587,7 +587,7 @@
 
     "@keeper.sh/destination-providers": ["@keeper.sh/destination-providers@workspace:packages/destination-providers"],
 
-    "@keeper.sh/destinations": ["@keeper.sh/destinations@workspace:packages/destinations"],
+    "@keeper.sh/destinations-metadata": ["@keeper.sh/destinations-metadata@workspace:packages/destinations-metadata"],
 
     "@keeper.sh/encryption": ["@keeper.sh/encryption@workspace:packages/encryption"],
 
