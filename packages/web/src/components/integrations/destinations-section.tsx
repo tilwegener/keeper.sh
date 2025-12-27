@@ -35,7 +35,21 @@ import {
   BannerText,
 } from "@/components/typography";
 import { button } from "@/styles";
+import { tv } from "tailwind-variants";
 import { Server, Plus } from "lucide-react";
+
+const syncStatusText = tv({
+  slots: {
+    text: "",
+    skeleton: "absolute inset-0 bg-surface-muted rounded animate-pulse",
+  },
+  variants: {
+    loading: {
+      true: { text: "invisible" },
+      false: { skeleton: "hidden" },
+    },
+  },
+});
 
 type CalDAVProvider = "fastmail" | "icloud" | "caldav";
 
@@ -109,26 +123,43 @@ interface SyncStatusDisplayProps {
 }
 
 interface SyncStatusTextProps {
-  syncStatus: SyncStatusDisplayProps;
+  syncStatus?: SyncStatusDisplayProps;
 }
 
 const SyncStatusText = ({ syncStatus }: SyncStatusTextProps) => {
-  const isProcessing =
-    syncStatus.status === "syncing" && syncStatus.stage === "processing";
+  const [lastKnownCount, setLastKnownCount] = useState<number | null>(null);
 
-  if (isProcessing && syncStatus.progress && syncStatus.progress.total > 0) {
-    return (
-      <TextMeta>
+  useEffect(() => {
+    if (syncStatus && syncStatus.remoteCount > 0) {
+      setLastKnownCount(syncStatus.remoteCount);
+    }
+  }, [syncStatus?.remoteCount]);
+
+  const displayCount = syncStatus?.remoteCount || lastKnownCount || 0;
+  const loading = lastKnownCount === null && !(syncStatus && syncStatus.remoteCount > 0);
+  const isProcessing =
+    syncStatus?.status === "syncing" && syncStatus.stage === "processing";
+  const { text, skeleton } = syncStatusText({ loading });
+
+  const content =
+    isProcessing && syncStatus?.progress && syncStatus.progress.total > 0 ? (
+      <>
         Syncing (
         <span className="tabular-nums">
           {syncStatus.progress.current}/{syncStatus.progress.total}
         </span>
         )
-      </TextMeta>
+      </>
+    ) : (
+      <>{displayCount} events synced</>
     );
-  }
 
-  return <TextMeta>{syncStatus.remoteCount} events synced</TextMeta>;
+  return (
+    <TextMeta className="relative w-fit">
+      <span className={text()}>{content}</span>
+      <span className={skeleton()} />
+    </TextMeta>
+  );
 };
 
 interface DestinationItemProps {
@@ -170,9 +201,7 @@ const DestinationItem = ({
             <TextLabel as="h2" className="tracking-tight">
               {destination.name}
             </TextLabel>
-            {isConnected && syncStatus && (
-              <SyncStatusText syncStatus={syncStatus} />
-            )}
+            {isConnected && <SyncStatusText syncStatus={syncStatus} />}
           </div>
           <DestinationAction
             comingSoon={destination.comingSoon}
