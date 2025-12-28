@@ -25,6 +25,7 @@ export interface AuthConfig {
   database: BunSQLDatabase;
   secret: string;
   baseUrl: string;
+  webBaseUrl?: string;
   commercialMode?: boolean;
   polarAccessToken?: string;
   polarMode?: "sandbox" | "production";
@@ -46,6 +47,7 @@ export const createAuth = (config: AuthConfig): AuthResult => {
     database,
     secret,
     baseUrl,
+    webBaseUrl,
     commercialMode = false,
     polarAccessToken,
     polarMode,
@@ -74,13 +76,17 @@ export const createAuth = (config: AuthConfig): AuthResult => {
       : null;
 
   if (polarClient) {
+    const checkoutSuccessUrl = webBaseUrl
+      ? new URL("/dashboard/billing?success=true", webBaseUrl).toString()
+      : "/dashboard/billing?success=true";
+
     plugins.push(
       polar({
         client: polarClient,
         createCustomerOnSignUp: true,
         use: [
           checkout({
-            successUrl: "/dashboard/billing?success=true",
+            successUrl: checkoutSuccessUrl,
           }),
           portal(),
         ],
