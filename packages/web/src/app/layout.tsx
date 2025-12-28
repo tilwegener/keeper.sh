@@ -1,5 +1,7 @@
 import "./globals.css";
 
+import { Analytics } from "@vercel/analytics/next";
+
 import type { Metadata } from "next";
 import { Onest } from "next/font/google";
 import clsx from "clsx";
@@ -25,6 +27,7 @@ export default function RootLayout({
         <AuthProvider>
           <div className="isolate min-h-dvh flex flex-col">{children}</div>
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
