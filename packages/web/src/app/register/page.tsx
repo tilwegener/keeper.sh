@@ -84,7 +84,8 @@ const EmailRegisterForm: FC = () => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const email = String(formData.get("email") ?? "");
-    router.push(`/register/complete?email=${encodeURIComponent(email)}`);
+    sessionStorage.setItem("registrationEmail", email);
+    router.push("/register/complete");
   };
 
   const handleGoogleSignIn = () => {

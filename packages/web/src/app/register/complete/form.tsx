@@ -1,6 +1,7 @@
 "use client";
 
 import type { FC } from "react";
+import { useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -14,15 +15,28 @@ import {
 import { useFormSubmit } from "@/hooks/use-form-submit";
 import { signUpWithEmail } from "@/lib/auth";
 
-interface CompleteRegistrationFormProps {
-  email: string;
-}
+const subscribeToStorage = (callback: () => void) => {
+  window.addEventListener("storage", callback);
+  return () => window.removeEventListener("storage", callback);
+};
 
-export const CompleteRegistrationForm: FC<CompleteRegistrationFormProps> = ({
-  email,
-}) => {
+const getRegistrationEmail = () => sessionStorage.getItem("registrationEmail");
+const getServerSnapshot = () => null;
+
+export const CompleteRegistrationForm: FC = () => {
   const router = useRouter();
   const { isSubmitting, error, submit } = useFormSubmit();
+
+  const email = useSyncExternalStore(
+    subscribeToStorage,
+    getRegistrationEmail,
+    getServerSnapshot,
+  );
+
+  if (!email) {
+    router.replace("/register");
+    return null;
+  }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -45,7 +59,7 @@ export const CompleteRegistrationForm: FC<CompleteRegistrationFormProps> = ({
         placeholder="Email"
         type="email"
         disabled
-        defaultValue={email}
+        value={email}
         autoComplete="email"
       />
       <AuthFormField
