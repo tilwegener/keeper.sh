@@ -23,10 +23,13 @@ const forward: RequestHandler = (request) => {
   const url = new URL(pathname, env.API_URL);
   url.search = search;
 
+  const headers = new Headers(request.headers);
+  headers.set("Host", url.host);
+
   return fetch(url.toString(), {
     method: request.method,
     redirect: "manual",
-    ...(request.headers && { headers: request.headers }),
+    headers,
     ...(request.body && { body: request.body }),
   });
 };
