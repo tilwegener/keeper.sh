@@ -20,7 +20,7 @@
     "@keeper.sh/integrations": "workspace:*",
     "@keeper.sh/log": "workspace:*",
     "drizzle-orm": "0.45.1",
-    "tsdav": "2.1.5",
+    "tsdav": "2.1.6",
     "ts-ics": "2.4.0"
   },
   "devDependencies": {

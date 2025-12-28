@@ -17,7 +17,7 @@
     ]
   },
   "devDependencies": {
-    "knip": "5.77.1",
+    "knip": "5.78.0",
     "rimraf": "^6.1.2",
     "turbo": "2.7.2"
   }
