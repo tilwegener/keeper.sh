@@ -61,8 +61,8 @@ Head to [keeper.sh](https://keeper.sh) to get started with the cloud-hosted vers
 
 |  | Free | Pro (Cloud-Hosted) | Pro (Self-Hosted) |
 | - | - | - | - |
-| **Monthly Price** | $0 USD | $8 USD | $0 | 
-| **Annual Price** | $0 USD | $48 USD (-50%) | $0 |
+| **Monthly Price** | $0 USD | $5 USD | $0 | 
+| **Annual Price** | $0 USD | $42 USD (-30%) | $0 |
 | **Refresh Interval** | 30 minutes | 1 minute | 1 minute
 | **Source Limit** | 2 | ∞ | ∞
 | **Destination Limit** | 1 | ∞ | ∞

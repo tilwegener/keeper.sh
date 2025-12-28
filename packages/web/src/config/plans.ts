@@ -37,8 +37,8 @@ export const plans: PlanConfig[] = [
   {
     id: "pro",
     name: "Pro",
-    monthlyPrice: 8,
-    yearlyPrice: 48,
+    monthlyPrice: 5,
+    yearlyPrice: 42,
     monthlyProductId:
       process.env.NEXT_PUBLIC_POLAR_PRO_MONTHLY_PRODUCT_ID ?? null,
     yearlyProductId:

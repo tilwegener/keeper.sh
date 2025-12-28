@@ -37,7 +37,7 @@ export function BillingPeriodToggle({
       >
         Yearly
         <span className="ml-1.5 inline-flex items-center px-1 py-0.5 rounded text-xs font-medium bg-success-surface text-success-emphasis">
-          -50%
+          -30%
         </span>
       </Toggle>
     </ToggleGroup>
