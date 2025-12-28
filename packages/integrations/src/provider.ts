@@ -25,7 +25,9 @@ export abstract class CalendarProvider<
 
   abstract pushEvents(events: SyncableEvent[]): Promise<PushResult[]>;
   abstract deleteEvents(eventIds: string[]): Promise<DeleteResult[]>;
-  abstract listRemoteEvents(options: ListRemoteEventsOptions): Promise<RemoteEvent[]>;
+  abstract listRemoteEvents(
+    options: ListRemoteEventsOptions,
+  ): Promise<RemoteEvent[]>;
 
   async sync(
     localEvents: SyncableEvent[],
@@ -47,15 +49,10 @@ export abstract class CalendarProvider<
       remoteEventCount: 0,
     });
 
-    const maxEndTime = localEvents.reduce<Date | undefined>(
-      (max, event) => (!max || event.endTime > max ? event.endTime : max),
-      undefined,
+    const maxEndTime = localEvents.reduce<Date>(
+      (max, event) => (event.endTime > max ? event.endTime : max),
+      new Date(Date.now() + 10 * 365 * 24 * 60 * 60 * 1000),
     );
-
-    if (!maxEndTime) {
-      this.childLog.debug({ userId }, "no local events to sync");
-      return { added: 0, removed: 0 };
-    }
 
     const remoteEvents = await this.listRemoteEvents({ until: maxEndTime });
 
