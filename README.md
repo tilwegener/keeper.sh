@@ -77,11 +77,13 @@ Running the following command will populate a `.env` file for you with required 
 
 ```bash
 cat > .env << EOF
-DOMAIN=localhost
+DOMAIN=http://localhost:3000
 BETTER_AUTH_SECRET=$(openssl rand -base64 32)
 ENCRYPTION_KEY=$(openssl rand -base64 32)
 EOF
 ```
+
+The `DOMAIN` value should include the scheme and port (for example `https://keeper.example.com`) so the app can use it directly without accidentally producing malformed URLs like `http://https://keeper.example.com:3000`.
 
 ### Configuring Providers
 
@@ -134,13 +136,13 @@ services:
       API_PORT: 3001
       DATABASE_URL: postgres://keeper:keeper@postgres:5432/keeper
       REDIS_URL: redis://redis:6379
-      BETTER_AUTH_URL: http://${DOMAIN:-localhost}:3000
+      BETTER_AUTH_URL: ${DOMAIN:-http://localhost:3000}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
       COMMERCIAL_MODE: false
       PASSKEY_RP_ID: ${DOMAIN:-localhost}
       PASSKEY_RP_NAME: Keeper
-      PASSKEY_ORIGIN: http://${DOMAIN:-localhost}:3000
+      PASSKEY_ORIGIN: ${DOMAIN:-http://localhost:3000}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       MICROSOFT_CLIENT_ID: ${MICROSOFT_CLIENT_ID:-}
@@ -158,7 +160,7 @@ services:
     environment:
       DATABASE_URL: postgres://keeper:keeper@postgres:5432/keeper
       REDIS_URL: redis://redis:6379
-      BETTER_AUTH_URL: http://${DOMAIN:-localhost}:3000
+      BETTER_AUTH_URL: ${DOMAIN:-http://localhost:3000}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
