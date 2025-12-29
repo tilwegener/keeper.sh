@@ -173,9 +173,6 @@ services:
     image: ghcr.io/ridafkih/keeper-web:latest
     environment:
       API_URL: http://api:3001
-      NEXT_PUBLIC_BASE_URL: http://${DOMAIN:-localhost}:3000
-      NEXT_PUBLIC_SOCKET_URL: ws://${DOMAIN:-localhost}:3001/socket
-      NEXT_PUBLIC_COMMERCIAL_MODE: false
     ports:
       - "3000:3000"
     depends_on:

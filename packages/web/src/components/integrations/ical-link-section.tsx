@@ -10,8 +10,6 @@ import { useIcalToken } from "@/hooks/use-ical-token";
 import { button, input } from "@/styles";
 import { Check } from "lucide-react";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "";
-
 const ICalLinkSkeleton: FC = () => (
   <div className="flex gap-1.5">
     <div
@@ -29,12 +27,8 @@ const ICalLinkSkeleton: FC = () => (
 
 export const ICalLinkSection: FC = () => {
   const toastManager = Toast.useToastManager();
-  const { token, isLoading } = useIcalToken();
+  const { icalUrl, isLoading } = useIcalToken();
   const [copied, setCopied] = useState(false);
-
-  const icalUrl = token
-    ? new URL(`/cal/${token}.ics`, BASE_URL).toString()
-    : "";
 
   const copyToClipboard = async () => {
     if (!icalUrl) return;
@@ -50,7 +44,7 @@ export const ICalLinkSection: FC = () => {
         title="Your iCal Link"
         description="Subscribe to this link to view your aggregated events"
       />
-      {isLoading ? (
+      {isLoading || !icalUrl ? (
         <ICalLinkSkeleton />
       ) : (
         <div className="flex gap-1.5">
@@ -66,7 +60,6 @@ export const ICalLinkSection: FC = () => {
           />
           <Button
             onClick={copyToClipboard}
-            disabled={!token}
             className={button({
               variant: "secondary",
               size: "sm",
